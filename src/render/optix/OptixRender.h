@@ -111,8 +111,7 @@ private:
     std::vector<std::unique_ptr<Curve>> mOptixCurves;
 
     std::unique_ptr<OptixBuffer> mVertexBuffer;
-
-    CUdeviceptr d_ib = 0;
+    std::unique_ptr<OptixBuffer> mIndexBuffer;
     CUdeviceptr d_lights = 0;
     CUdeviceptr d_points = 0;
     CUdeviceptr d_widths = 0;

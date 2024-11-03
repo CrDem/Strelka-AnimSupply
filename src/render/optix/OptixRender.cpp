@@ -287,7 +287,7 @@ OptiXRender::Mesh* OptiXRender::createMesh(const oka::Mesh& mesh)
         accel_options.operation = OPTIX_BUILD_OPERATION_BUILD;
 
         const CUdeviceptr verticesDataStart = mVertexBuffer->getPtr() + mesh.mVbOffset * sizeof(oka::Scene::Vertex);
-        CUdeviceptr indicesDataStart = d_ib + mesh.mIndex * sizeof(uint32_t);
+        CUdeviceptr indicesDataStart = mIndexBuffer->getPtr() + mesh.mIndex * sizeof(uint32_t);
 
         // Our build input is a simple list of non-indexed triangle vertices
         const uint32_t triangle_input_flags[1] = { OPTIX_GEOMETRY_FLAG_NONE };
@@ -674,7 +674,6 @@ void OptiXRender::createSbt()
     std::vector<MissSbtRecord> missGroupDataCpu(miss_record_count);
 
     MissSbtRecord& ms_sbt = missGroupDataCpu[RAY_TYPE_RADIANCE];
-    // ms_sbt.data.bg_color = { 0.5f, 0.5f, 0.5f };
     ms_sbt.data.bg_color = { 0.0f, 0.0f, 0.0f };
     OPTIX_CHECK(optixSbtRecordPackHeader(mState.radiance_miss_group, &ms_sbt));
 
@@ -883,7 +882,7 @@ void OptiXRender::render(Buffer* output)
 
     Params& params = mState.params;
     params.scene.vb = (Vertex*) mVertexBuffer->getPtr();
-    params.scene.ib = (uint32_t*)d_ib;
+    params.scene.ib = (uint32_t*) mIndexBuffer->getPtr();
     params.scene.lights = (UniformLight*)d_lights;
     params.scene.numLights = mScene->getLights().size();
 
@@ -995,8 +994,6 @@ void OptiXRender::render(Buffer* output)
         // do not run post processing for debug output
         tonemap(tonemapperType, exposureValue, gamma, params.image, width, height);
     }
-
-    // output->unmap();
 
     getSharedContext().mFrameNumber++;
 
@@ -1115,12 +1112,15 @@ void OptiXRender::createIndexBuffer()
     const std::vector<uint32_t>& indices = mScene->getIndices();
     const size_t ibsize = indices.size() * sizeof(uint32_t);
 
-    if (d_ib)
+    if (mIndexBuffer == nullptr)
     {
-        CUDA_CHECK(cudaFree(reinterpret_cast<void*>(d_ib)));
+        mIndexBuffer.reset(new OptixBuffer(ibsize));
     }
-    CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_ib), ibsize));
-    CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_ib), indices.data(), ibsize, cudaMemcpyHostToDevice));
+    if (mIndexBuffer->size() != ibsize)
+    {
+        mIndexBuffer->realloc(ibsize);
+    }
+    CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(mIndexBuffer->getPtr()), indices.data(), ibsize, cudaMemcpyHostToDevice));
 }
 
 void OptiXRender::createLightBuffer()
