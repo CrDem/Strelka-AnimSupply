@@ -49,7 +49,8 @@ struct PathTracerState
     CUstream stream = 0;
     Params params = {};
     Params prevParams = {};
-    CUdeviceptr d_params = 0;
+
+    std::unique_ptr<OptixBuffer> mParamsBuffer;
 
     OptixShaderBindingTable sbt = {};
 };
@@ -113,6 +114,7 @@ private:
     std::unique_ptr<OptixBuffer> mVertexBuffer;
     std::unique_ptr<OptixBuffer> mIndexBuffer;
     std::unique_ptr<OptixBuffer> mLightBuffer;
+    // TODO: move to raii buffers
     CUdeviceptr d_points = 0;
     CUdeviceptr d_widths = 0;
 
@@ -120,8 +122,6 @@ private:
     CUdeviceptr d_materialArgData = 0;
     CUdeviceptr d_texturesHandler = 0;
     CUdeviceptr d_texturesData = 0;
-
-    CUdeviceptr d_param = 0;
 
     void createVertexBuffer();
     void createIndexBuffer();

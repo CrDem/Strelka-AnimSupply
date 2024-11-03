@@ -148,6 +148,8 @@ void OptiXRender::createContext()
     }
     CUcontext cu_ctx = 0; // zero means take the current context
     OPTIX_CHECK(optixDeviceContextCreate(cu_ctx, &options, &mState.context));
+
+    mState.mParamsBuffer.reset(new OptixBuffer(sizeof(Params)));
 }
 
 bool OptiXRender::compactAccel(CUdeviceptr& buffer,
@@ -787,11 +789,6 @@ void OptiXRender::updatePathtracerParams(const uint32_t width, const uint32_t he
         {
             CUDA_CHECK(cudaFree((void*)mState.params.specular));
         }
-        if (mState.d_params)
-        {
-            CUDA_CHECK(cudaFree((void*)mState.d_params));
-        }
-        CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&mState.d_params), sizeof(Params)));
         const size_t frameSize = mState.params.image_width * mState.params.image_height;
         CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&mState.params.accum), frameSize * sizeof(float4)));
 
@@ -949,12 +946,12 @@ void OptiXRender::render(Buffer* output)
     params.enableAccumulation = enableAccumulation;
     params.maxSampleCount = totalSpp;
 
-    CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(mState.d_params), &params, sizeof(params), cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(mState.mParamsBuffer->getPtr()), &params, sizeof(params), cudaMemcpyHostToDevice));
 
     if (samplesThisLaunch != 0)
     {
         OPTIX_CHECK(optixLaunch(
-            mState.pipeline, mState.stream, mState.d_params, sizeof(Params), &mState.sbt, width, height, /*depth=*/1));
+            mState.pipeline, mState.stream, mState.mParamsBuffer->getPtr(), sizeof(Params), &mState.sbt, width, height, /*depth=*/1));
         CUDA_SYNC_CHECK();
         if (enableAccumulation)
         {
