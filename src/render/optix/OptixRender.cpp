@@ -119,8 +119,7 @@ static bool readSourceFile(std::string& str, const fs::path& filename)
     return false;
 }
 
-OptiXRender::OptiXRender(/* args */)
-    : mVertexBuffer(std::make_unique<OptixBuffer>(0))
+OptiXRender::OptiXRender()
 {
 }
 
@@ -881,9 +880,9 @@ void OptiXRender::render(Buffer* output)
     }
 
     Params& params = mState.params;
-    params.scene.vb = (Vertex*) mVertexBuffer->getPtr();
-    params.scene.ib = (uint32_t*) mIndexBuffer->getPtr();
-    params.scene.lights = (UniformLight*)d_lights;
+    params.scene.vb = (Vertex*)mVertexBuffer->getPtr();
+    params.scene.ib = (uint32_t*)mIndexBuffer->getPtr();
+    params.scene.lights = (UniformLight*)mLightBuffer->getPtr();
     params.scene.numLights = mScene->getLights().size();
 
     params.image = (float4*)((OptixBuffer*)output)->getNativePtr();
@@ -1104,7 +1103,8 @@ void OptiXRender::createVertexBuffer()
     {
         mVertexBuffer->realloc(vbsize);
     }
-    CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(mVertexBuffer->getPtr()), vertices.data(), vbsize, cudaMemcpyHostToDevice));
+    CUDA_CHECK(
+        cudaMemcpy(reinterpret_cast<void*>(mVertexBuffer->getPtr()), vertices.data(), vbsize, cudaMemcpyHostToDevice));
 }
 
 void OptiXRender::createIndexBuffer()
@@ -1120,22 +1120,26 @@ void OptiXRender::createIndexBuffer()
     {
         mIndexBuffer->realloc(ibsize);
     }
-    CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(mIndexBuffer->getPtr()), indices.data(), ibsize, cudaMemcpyHostToDevice));
+    CUDA_CHECK(
+        cudaMemcpy(reinterpret_cast<void*>(mIndexBuffer->getPtr()), indices.data(), ibsize, cudaMemcpyHostToDevice));
 }
 
 void OptiXRender::createLightBuffer()
 {
     const std::vector<Scene::Light>& lightDescs = mScene->getLights();
     const size_t lightBufferSize = lightDescs.size() * sizeof(Scene::Light);
-    if (d_lights)
+    if (mLightBuffer == nullptr)
     {
-        CUDA_CHECK(cudaFree(reinterpret_cast<void*>(d_lights)));
+        mLightBuffer.reset(new OptixBuffer(lightBufferSize));
+    }
+    if (mLightBuffer->size() != lightBufferSize)
+    {
+        mLightBuffer->realloc(lightBufferSize);
     }
     if (lightBufferSize)
     {
-        CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_lights), lightBufferSize));
-        CUDA_CHECK(
-            cudaMemcpy(reinterpret_cast<void*>(d_lights), lightDescs.data(), lightBufferSize, cudaMemcpyHostToDevice));
+        CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(mLightBuffer->getPtr()), lightDescs.data(), lightBufferSize,
+                              cudaMemcpyHostToDevice));
     }
 }
 
