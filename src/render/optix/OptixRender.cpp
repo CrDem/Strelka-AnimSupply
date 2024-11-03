@@ -28,6 +28,7 @@
 #include <array>
 #include <string>
 #include <fstream>
+#include <memory>
 
 #include <log.h>
 
@@ -142,6 +143,7 @@ static bool readSourceFile(std::string& str, const fs::path& filename)
 }
 
 OptiXRender::OptiXRender(/* args */)
+    : mVertexBuffer(std::make_unique<OptixBuffer>(0))
 {
 }
 
@@ -307,7 +309,7 @@ OptiXRender::Mesh* OptiXRender::createMesh(const oka::Mesh& mesh)
         accel_options.buildFlags = OPTIX_BUILD_FLAG_ALLOW_COMPACTION | OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;
         accel_options.operation = OPTIX_BUILD_OPERATION_BUILD;
 
-        const CUdeviceptr verticesDataStart = d_vb + mesh.mVbOffset * sizeof(oka::Scene::Vertex);
+        const CUdeviceptr verticesDataStart = mVertexBuffer->getPtr() + mesh.mVbOffset * sizeof(oka::Scene::Vertex);
         CUdeviceptr indicesDataStart = d_ib + mesh.mIndex * sizeof(uint32_t);
 
         // Our build input is a simple list of non-indexed triangle vertices
@@ -371,13 +373,13 @@ void OptiXRender::createBottomLevelAccelerationStructures()
     for (int i = 0; i < meshes.size(); ++i)
     {
         Mesh* m = createMesh(meshes[i]);
-        mOptixMeshes.push_back(m);
+        mOptixMeshes.emplace_back(m);
     }
     mOptixCurves.clear();
     for (int i = 0; i < curves.size(); ++i)
     {
         Curve* c = createCurve(curves[i]);
-        mOptixCurves.push_back(c);
+        mOptixCurves.emplace_back(c);
     }
 }
 
@@ -903,7 +905,7 @@ void OptiXRender::render(Buffer* output)
     }
 
     Params& params = mState.params;
-    params.scene.vb = (Vertex*)d_vb;
+    params.scene.vb = (Vertex*) mVertexBuffer->getPtr();
     params.scene.ib = (uint32_t*)d_ib;
     params.scene.lights = (UniformLight*)d_lights;
     params.scene.numLights = mScene->getLights().size();
@@ -1017,7 +1019,7 @@ void OptiXRender::render(Buffer* output)
         tonemap(tonemapperType, exposureValue, gamma, params.image, width, height);
     }
 
-    output->unmap();
+    // output->unmap();
 
     getSharedContext().mFrameNumber++;
 
@@ -1120,12 +1122,15 @@ void OptiXRender::createVertexBuffer()
     const std::vector<oka::Scene::Vertex>& vertices = mScene->getVertices();
     const size_t vbsize = vertices.size() * sizeof(oka::Scene::Vertex);
 
-    if (d_vb)
+    if (mVertexBuffer == nullptr)
     {
-        CUDA_CHECK(cudaFree(reinterpret_cast<void*>(d_vb)));
+        mVertexBuffer.reset(new OptixBuffer(vbsize));
     }
-    CUDA_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_vb), vbsize));
-    CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_vb), vertices.data(), vbsize, cudaMemcpyHostToDevice));
+    if (mVertexBuffer->size() != vbsize)
+    {
+        mVertexBuffer->realloc(vbsize);
+    }
+    CUDA_CHECK(cudaMemcpy(reinterpret_cast<void*>(mVertexBuffer->getPtr()), vertices.data(), vbsize, cudaMemcpyHostToDevice));
 }
 
 void OptiXRender::createIndexBuffer()
