@@ -3,7 +3,6 @@
 #include "buffer.h"
 
 #include <optix_types.h>
-
 #include <stdint.h>
 
 namespace oka
@@ -42,12 +41,12 @@ public:
 
     CUdeviceptr getPtr()
     {
-        return (CUdeviceptr) mDeviceData;
+        return (CUdeviceptr)mDeviceData;
     }
 
 protected:
     void* mDeviceData = nullptr;
     size_t mSizeInBytes;
-    uint32_t mDeviceIndex = 0;    
+    uint32_t mDeviceIndex = 0;
 };
 } // namespace oka
