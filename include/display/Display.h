@@ -33,6 +33,8 @@ public:
     virtual void init(int width, int height, SettingsManager* settings) = 0;
     virtual void destroy() = 0;
 
+    virtual void* getDisplayNativeTexure() = 0;
+
 #ifdef __APPLE__
     virtual void setNativeDevice(void* device) = 0;
 #endif
@@ -75,6 +77,11 @@ public:
     virtual void drawFrame(ImageBuffer& result) = 0;
     virtual void drawUI();
 
+    void setViewPortHovered(bool state)
+    {
+        mViewPortHovered = state;
+    }
+
 protected:
 
     static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
@@ -86,6 +93,7 @@ protected:
 
     int mWindowWidth = 800;
     int mWindowHeight = 600;
+    bool mViewPortHovered = false;
 
     InputHandler* mInputHandler = nullptr;
     ResizeHandler* mResizeHandler = nullptr;

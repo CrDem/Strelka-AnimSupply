@@ -191,6 +191,8 @@ public:
 
         ImGuiIO& io = ImGui::GetIO();
 
+        ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+        
         ImGui::BeginMainMenuBar();
         if (ImGui::BeginMenu("File"))
         {
@@ -251,6 +253,33 @@ public:
 
         const char* debugItems[] = { "None", "Normals", "Diffuse AOV", "Specular AOV" };
         static int currentDebugItemId = 0;
+
+        m_display->setViewPortHovered(false);
+
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+        if (ImGui::Begin("Viewport"))
+        {
+            const ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+            const ImVec2 scale = ImGui::GetIO().DisplayFramebufferScale;
+            // notify render on resolution changes
+
+            const ImVec2 mouse = ImVec2(scale.x * (ImGui::GetMousePos().x - ImGui::GetCursorScreenPos().x),
+                                        scale.y * (ImGui::GetMousePos().y - ImGui::GetCursorScreenPos().y));
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+            ImGui::ImageButton(m_display->getDisplayNativeTexure(), viewportSize);
+            ImGui::PopStyleVar();
+
+            if (ImGui::IsItemHovered())
+            {
+                if (ImGui::IsKeyDown(ImGuiKey_Space))
+                {
+                    // picking code, selecting 
+                }
+                m_display->setViewPortHovered(true);
+            }
+        }
+        ImGui::End();
+        ImGui::PopStyleVar();
 
         ImGui::Begin("Menu:"); // begin window
 

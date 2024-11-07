@@ -23,7 +23,6 @@ public:
     GlfwDisplay();
     virtual ~GlfwDisplay();
 
-public:
     virtual void init(int width, int height, SettingsManager* settings) override;
     void destroy();
 
@@ -32,6 +31,8 @@ public:
 
     void drawFrame(ImageBuffer& result);
     void drawUI();
+
+    void* getDisplayNativeTexure() override;
 
     void display(const int32_t screen_res_x,
                  const int32_t screen_res_y,

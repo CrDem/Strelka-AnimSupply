@@ -98,7 +98,7 @@ extern "C" __global__ void __raygen__rg()
         prd.linearPixelIndex = linearPixelIndex;
         prd.sampleIndex = params.subframe_index + sampleIdx;
 
-        prd.sampler = initSampler(launch_index.x, launch_index.y, prd.linearPixelIndex, prd.sampleIndex, params.maxSampleCount, 52u);
+        prd.sampler = initSampler(launch_index.x, params.image_height - launch_index.y, prd.linearPixelIndex, prd.sampleIndex, params.maxSampleCount, 52u);
 
         prd.radiance = make_float3(0.0f);
         prd.throughput = make_float3(1.0f);
@@ -109,7 +109,7 @@ extern "C" __global__ void __raygen__rg()
         
         float3 ray_origin, ray_direction;
 
-        const uint2 pixelCoord = make_uint2(launch_index.x, launch_index.y);
+        const uint2 pixelCoord = make_uint2(launch_index.x, params.image_height - launch_index.y);
         generateCameraRay(pixelCoord, prd.sampler, ray_origin, ray_direction);
 
         unsigned int payload0, payload1;

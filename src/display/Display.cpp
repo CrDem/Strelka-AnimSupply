@@ -29,13 +29,11 @@ void Display::keyCallback(GLFWwindow* window,
                           [[maybe_unused]] int mods)
 {
     assert(window);
-    ImGuiIO& io = ImGui::GetIO();
-    bool handled = io.WantCaptureKeyboard;
-    if (handled)
+    auto app = reinterpret_cast<Display*>(glfwGetWindowUserPointer(window));
+    if (!app->mViewPortHovered)
     {
         return;
     }
-    auto app = reinterpret_cast<Display*>(glfwGetWindowUserPointer(window));
     InputHandler* handler = app->getInputHandler();
     assert(handler);
     handler->keyCallback(key, scancode, action, mods);
@@ -47,13 +45,11 @@ void Display::mouseButtonCallback(GLFWwindow* window,
                                   [[maybe_unused]] int mods)
 {
     assert(window);
-    ImGuiIO& io = ImGui::GetIO();
-    bool handled = io.WantCaptureMouse;
-    if (handled)
+    auto app = reinterpret_cast<Display*>(glfwGetWindowUserPointer(window));
+    if (!app->mViewPortHovered)
     {
         return;
     }
-    auto app = reinterpret_cast<Display*>(glfwGetWindowUserPointer(window));
     InputHandler* handler = app->getInputHandler();
     if (handler)
     {
@@ -64,13 +60,11 @@ void Display::mouseButtonCallback(GLFWwindow* window,
 void Display::handleMouseMoveCallback(GLFWwindow* window, [[maybe_unused]] double xpos, [[maybe_unused]] double ypos)
 {
     assert(window);
-    ImGuiIO& io = ImGui::GetIO();
-    bool handled = io.WantCaptureMouse;
-    if (handled)
+    auto app = reinterpret_cast<Display*>(glfwGetWindowUserPointer(window));
+    if (!app->mViewPortHovered)
     {
         return;
     }
-    auto app = reinterpret_cast<Display*>(glfwGetWindowUserPointer(window));
     InputHandler* handler = app->getInputHandler();
     if (handler)
     {

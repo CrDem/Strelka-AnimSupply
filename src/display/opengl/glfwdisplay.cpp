@@ -228,7 +228,8 @@ void GlfwDisplay::init(int width, int height, SettingsManager* settings)
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     (void)io;
-    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
     // Setup Dear ImGui style
@@ -238,6 +239,11 @@ void GlfwDisplay::init(int width, int height, SettingsManager* settings)
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(mWindow, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
+}
+
+void* GlfwDisplay::getDisplayNativeTexure()
+{
+    return (void*) m_render_tex;
 }
 
 void GlfwDisplay::display(const int32_t screen_res_x,
