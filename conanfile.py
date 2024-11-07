@@ -12,7 +12,7 @@ class StrelkaRecipe(ConanFile):
     def requirements(self):
         self.requires("glm/cci.20230113")
         self.requires("spdlog/1.14.1")
-        self.requires("imgui/1.90.5")
+        self.requires("imgui/1.90.5-docking", override = True)
         self.requires("glfw/3.3.8")
         self.requires("stb/cci.20230920")
         self.requires("glad/0.1.36")
