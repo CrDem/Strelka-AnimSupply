@@ -33,6 +33,8 @@ Strelka uses conan https://conan.io/
 * install conan: `pip install conan` 
 * install ninja [https://ninja-build.org/] build system: `sudo apt install ninja-build`
 
+* initialize submodules `git submodule update --init --recursive`
+
 detect conan profile: `conan profile detect --force`
 
 1. `conan install . --build=missing --settings=build_type=Debug`
