@@ -56,7 +56,8 @@ void GlfwDisplay::init(int width, int height, SettingsManager* settings)
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
 
     // Setup style
@@ -86,6 +87,12 @@ void GlfwDisplay::init(int width, int height, SettingsManager* settings)
     _semaphore = dispatch_semaphore_create(kMaxFramesInFlight);
     buildShaders();
 }
+
+void* GlfwDisplay::getDisplayNativeTexure()
+{
+    return mTexture;
+}
+
 
 void GlfwDisplay::drawFrame(ImageBuffer& result)
 {

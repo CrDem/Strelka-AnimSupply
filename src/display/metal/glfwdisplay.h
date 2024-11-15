@@ -25,6 +25,8 @@ public:
     virtual void onBeginFrame() override;
     virtual void onEndFrame() override;
 
+    void* getDisplayNativeTexure() override;
+
     virtual void drawFrame(ImageBuffer& result) override;
     virtual void drawUI() override;
 private:
