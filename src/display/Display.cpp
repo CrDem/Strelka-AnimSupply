@@ -46,14 +46,10 @@ void Display::mouseButtonCallback(GLFWwindow* window,
 {
     assert(window);
     auto app = reinterpret_cast<Display*>(glfwGetWindowUserPointer(window));
-    if (!app->mViewPortHovered)
-    {
-        return;
-    }
     InputHandler* handler = app->getInputHandler();
     if (handler)
     {
-        handler->mouseButtonCallback(button, action, mods);
+        handler->mouseButtonCallback(button, action, mods, app->mViewPortHovered);
     }
 }
 
@@ -61,10 +57,6 @@ void Display::handleMouseMoveCallback(GLFWwindow* window, [[maybe_unused]] doubl
 {
     assert(window);
     auto app = reinterpret_cast<Display*>(glfwGetWindowUserPointer(window));
-    if (!app->mViewPortHovered)
-    {
-        return;
-    }
     InputHandler* handler = app->getInputHandler();
     if (handler)
     {

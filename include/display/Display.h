@@ -14,7 +14,7 @@ class InputHandler
 {
 public:
     virtual void keyCallback(int key, [[maybe_unused]] int scancode, int action, [[maybe_unused]] int mods) = 0;
-    virtual void mouseButtonCallback(int button, int action, [[maybe_unused]] int mods) = 0;
+    virtual void mouseButtonCallback(int button, int action, [[maybe_unused]] int mods, bool viewPortHovered) = 0;
     virtual void handleMouseMoveCallback([[maybe_unused]] double xpos, [[maybe_unused]] double ypos) = 0;
 };
 
@@ -83,7 +83,6 @@ public:
     }
 
 protected:
-
     static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
     static void keyCallback(
         GLFWwindow* window, int key, [[maybe_unused]] int scancode, int action, [[maybe_unused]] int mods);

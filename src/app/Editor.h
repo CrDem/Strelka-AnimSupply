@@ -11,10 +11,11 @@
 #include <memory>
 #include <optional>
 
+#include "gltfloader.h"
+
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "ImGuizmo.h"
-
 #include "ImGuiFileDialog.h"
 
 namespace oka
@@ -192,7 +193,7 @@ public:
         ImGuiIO& io = ImGui::GetIO();
 
         ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
-        
+
         ImGui::BeginMainMenuBar();
         if (ImGui::BeginMenu("File"))
         {
@@ -273,7 +274,7 @@ public:
             {
                 if (ImGui::IsKeyDown(ImGuiKey_Space))
                 {
-                    // picking code, selecting 
+                    // picking code, selecting
                 }
                 m_display->setViewPortHovered(true);
             }

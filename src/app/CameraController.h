@@ -83,11 +83,11 @@ public:
         }
     }
 
-    void mouseButtonCallback(int button, int action, [[maybe_unused]] int mods) override
+    void mouseButtonCallback(int button, int action, [[maybe_unused]] int mods, bool viewPortHovered) override
     {
         if (button == GLFW_MOUSE_BUTTON_RIGHT)
         {
-            if (action == GLFW_PRESS)
+            if (action == GLFW_PRESS && viewPortHovered)
             {
                 mCam.mouseButtons.right = true;
             }
@@ -98,7 +98,7 @@ public:
         }
         else if (button == GLFW_MOUSE_BUTTON_LEFT)
         {
-            if (action == GLFW_PRESS)
+            if (action == GLFW_PRESS && viewPortHovered)
             {
                 mCam.mouseButtons.left = true;
             }
