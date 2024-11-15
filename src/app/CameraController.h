@@ -1,10 +1,13 @@
-
+#pragma once
+#include <Display.h>
+#include <scene/camera.h>
+#include <GLFW/glfw3.h>
 
 namespace oka
 {
 class CameraController : public oka::InputHandler
 {
-    oka::Camera mCam;
+    Camera mCam;
 
     float rotationSpeed = 0.025f;
     float movementSpeed = 1.0f;
@@ -24,7 +27,7 @@ public:
         mCam.updateViewMatrix();
     }
 
-    oka::Camera& getCamera()
+    Camera& getCamera()
     {
         return mCam;
     }
@@ -34,7 +37,7 @@ public:
         mCam = cam;
     }
 
-    CameraController(oka::Camera& cam, bool isYup)
+    CameraController(Camera& cam, bool isYup)
     {
         if (isYup)
         {
@@ -49,7 +52,7 @@ public:
         mCam = cam;
     }
 
-    void keyCallback(int key, [[maybe_unused]] int scancode, int action, [[maybe_unused]] int mods) override
+    void keyCallback(int key, [[maybe_unused]] int scancode, int action, [[maybe_unused]] int mods)
     {
         const bool keyState = ((GLFW_REPEAT == action) || (GLFW_PRESS == action)) ? true : false;
         switch (key)
@@ -83,7 +86,7 @@ public:
         }
     }
 
-    void mouseButtonCallback(int button, int action, [[maybe_unused]] int mods, bool viewPortHovered) override
+    void mouseButtonCallback(int button, int action, [[maybe_unused]] int mods, bool viewPortHovered)
     {
         if (button == GLFW_MOUSE_BUTTON_RIGHT)
         {
@@ -109,7 +112,7 @@ public:
         }
     }
 
-    void handleMouseMoveCallback([[maybe_unused]] double xpos, [[maybe_unused]] double ypos) override
+    void handleMouseMoveCallback([[maybe_unused]] double xpos, [[maybe_unused]] double ypos)
     {
         const float dx = mCam.mousePos[0] - xpos;
         const float dy = mCam.mousePos[1] - ypos;
