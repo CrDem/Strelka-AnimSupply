@@ -36,7 +36,7 @@ uint32_t packUV(const glm::float2& uv)
 //  valid range of coordinates [-1; 1]
 uint32_t packNormal(const glm::float3& normal)
 {
-    uint32_t packed = (uint32_t)((normal.x + 1.0f) / 2.0f * 511.99999f);
+    auto packed = (uint32_t)((normal.x + 1.0f) / 2.0f * 511.99999f);
     packed += (uint32_t)((normal.y + 1.0f) / 2.0f * 511.99999f) << 10;
     packed += (uint32_t)((normal.z + 1.0f) / 2.0f * 511.99999f) << 20;
     return packed;
@@ -45,7 +45,7 @@ uint32_t packNormal(const glm::float3& normal)
 //  valid range of coordinates [-10; 10]
 uint32_t packTangent(const glm::float3& tangent)
 {
-    uint32_t packed = (uint32_t)((tangent.x + 10.0f) / 20.0f * 511.99999f);
+    auto packed = (uint32_t)((tangent.x + 10.0f) / 20.0f * 511.99999f);
     packed += (uint32_t)((tangent.y + 10.0f) / 20.0f * 511.99999f) << 10;
     packed += (uint32_t)((tangent.z + 10.0f) / 20.0f * 511.99999f) << 20;
     return packed;
@@ -99,9 +99,10 @@ void processPrimitive(const tinygltf::Model& model, oka::Scene& scene, const tin
 
     const tinygltf::Accessor& positionAccessor = model.accessors[primitive.attributes.find("POSITION")->second];
     const tinygltf::BufferView& positionView = model.bufferViews[positionAccessor.bufferView];
-    const float* positionData = reinterpret_cast<const float*>(&model.buffers[positionView.buffer].data[positionAccessor.byteOffset + positionView.byteOffset]);
+    const auto* positionData = reinterpret_cast<const float*>(
+        &model.buffers[positionView.buffer].data[positionAccessor.byteOffset + positionView.byteOffset]);
     assert(positionData != nullptr);
-    const uint32_t vertexCount = static_cast<uint32_t>(positionAccessor.count);
+    const auto vertexCount = static_cast<uint32_t>(positionAccessor.count);
     assert(vertexCount != 0);
     const int byteStride = positionAccessor.ByteStride(positionView);
     assert(byteStride > 0); // -1 means invalid glTF
@@ -169,7 +170,7 @@ void processPrimitive(const tinygltf::Model& model, oka::Scene& scene, const tin
         switch (accessor.componentType)
         {
         case TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT: {
-            const uint32_t* buf = static_cast<const uint32_t*>(dataPtr);
+            const auto* buf = static_cast<const uint32_t*>(dataPtr);
             for (size_t index = 0; index < indexCount; index++)
             {
                 indices.push_back(buf[index]);
@@ -178,7 +179,7 @@ void processPrimitive(const tinygltf::Model& model, oka::Scene& scene, const tin
             break;
         }
         case TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT: {
-            const uint16_t* buf = static_cast<const uint16_t*>(dataPtr);
+            const auto* buf = static_cast<const uint16_t*>(dataPtr);
             for (size_t index = 0; index < indexCount; index++)
             {
                 indices.push_back(buf[index]);
@@ -187,7 +188,7 @@ void processPrimitive(const tinygltf::Model& model, oka::Scene& scene, const tin
             break;
         }
         case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE: {
-            const uint8_t* buf = static_cast<const uint8_t*>(dataPtr);
+            const auto* buf = static_cast<const uint8_t*>(dataPtr);
             for (size_t index = 0; index < indexCount; index++)
             {
                 indices.push_back(buf[index]);
@@ -212,9 +213,9 @@ void processMesh(const tinygltf::Model& model, oka::Scene& scene, const tinygltf
     using namespace std;
     cout << "Mesh name: " << mesh.name << endl;
     cout << "Primitive count: " << mesh.primitives.size() << endl;
-    for (size_t i = 0; i < mesh.primitives.size(); ++i)
+    for (const auto& primitive : mesh.primitives)
     {
-        processPrimitive(model, scene, mesh.primitives[i], transform, globalScale);
+        processPrimitive(model, scene, primitive, transform, globalScale);
     }
 }
 
@@ -294,10 +295,10 @@ void processNode(const tinygltf::Model& model, oka::Scene& scene, const tinygltf
         scene.getCamera(node.camera).updateViewMatrix();
     }
 
-    for (int i = 0; i < node.children.size(); ++i)
+    for (int childIdx : node.children)
     {
-        scene.mNodes[node.children[i]].parent = currentNodeId;
-        processNode(model, scene, model.nodes[node.children[i]], node.children[i], globalTransform, globalScale);
+        scene.mNodes[childIdx].parent = currentNodeId;
+        processNode(model, scene, model.nodes[childIdx], childIdx, globalTransform, globalScale);
     }
 }
 
@@ -422,9 +423,8 @@ void loadMaterials(const tinygltf::Model& model, oka::Scene& scene)
 
 void loadCameras(const tinygltf::Model& model, oka::Scene& scene)
 {
-    for (uint32_t i = 0; i < model.cameras.size(); ++i)
+    for (const auto& cameraGltf : model.cameras)
     {
-        const tinygltf::Camera& cameraGltf = model.cameras[i];
         if (strcmp(cameraGltf.type.c_str(), "perspective") == 0)
         {
             oka::Camera camera;
@@ -466,7 +466,7 @@ void loadAnimation(const tinygltf::Model& model, oka::Scene& scene)
                 const tinygltf::Buffer& buffer = model.buffers[bufferView.buffer];
                 assert(accessor.componentType == TINYGLTF_COMPONENT_TYPE_FLOAT);
                 const void* dataPtr = &buffer.data[accessor.byteOffset + bufferView.byteOffset];
-                const float* buf = static_cast<const float*>(dataPtr);
+                const auto* buf = static_cast<const float*>(dataPtr);
 
                 for (size_t index = 0; index < accessor.count; index++)
                 {
@@ -494,15 +494,15 @@ void loadAnimation(const tinygltf::Model& model, oka::Scene& scene)
                 switch (accessor.type)
                 {
                 case TINYGLTF_TYPE_VEC3: {
-                    const glm::vec3* buf = static_cast<const glm::vec3*>(dataPtr);
+                    const auto* buf = static_cast<const glm::vec3*>(dataPtr);
                     for (size_t index = 0; index < accessor.count; index++)
                     {
-                        samp.outputsVec4.push_back(glm::vec4(buf[index], 0.0f));
+                        samp.outputsVec4.emplace_back(buf[index], 0.0f);
                     }
                     break;
                 }
                 case TINYGLTF_TYPE_VEC4: {
-                    const glm::vec4* buf = static_cast<const glm::vec4*>(dataPtr);
+                    const auto* buf = static_cast<const glm::vec4*>(dataPtr);
                     for (size_t index = 0; index < accessor.count; index++)
                     {
                         samp.outputsVec4.push_back(buf[index]);

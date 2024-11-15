@@ -165,8 +165,8 @@ void MetalRender::render(Buffer* output)
 
     MTL::Buffer* pUniformBuffer = mUniformBuffers[mFrameIndex];
     MTL::Buffer* pUniformTMBuffer = mUniformTMBuffers[mFrameIndex];
-    Uniforms* pUniformData = reinterpret_cast<Uniforms*>(pUniformBuffer->contents());
-    UniformsTonemap* pUniformTonemap = reinterpret_cast<UniformsTonemap*>(pUniformTMBuffer->contents());
+    auto* pUniformData = reinterpret_cast<Uniforms*>(pUniformBuffer->contents());
+    auto* pUniformTonemap = reinterpret_cast<UniformsTonemap*>(pUniformTMBuffer->contents());
     pUniformData->frameIndex = mFrameIndex;
     pUniformData->subframeIndex = getSharedContext().mSubframeIndex;
     pUniformData->height = height;
@@ -196,7 +196,7 @@ void MetalRender::render(Buffer* output)
     enableAccumulationPrev = enableAccumulation;
 
     static uint32_t sspTotalPrev = 0;
-    const uint32_t sspTotal = settings.getAs<uint32_t>("render/pt/sppTotal");
+    const auto sspTotal = settings.getAs<uint32_t>("render/pt/sppTotal");
     settingsChanged |= (sspTotalPrev > sspTotal); // reset only if new spp less than already accumulated
     sspTotalPrev = sspTotal;
 
@@ -227,15 +227,15 @@ void MetalRender::render(Buffer* output)
     // known as “film speed.” The higher this value, the greater the exposure. If this is set to a non-zero value,
     // “Photographic” mode is enabled. If this is set to 0, “Arbitrary” mode is enabled, and all color scaling is then
     // strictly defined by the value of cm^2 Factor.
-    float filmIso = settings.getAs<float>("render/post/tonemapper/filmIso");
+    auto filmIso = settings.getAs<float>("render/post/tonemapper/filmIso");
     // The candela per meter square factor
-    float cm2_factor = settings.getAs<float>("render/post/tonemapper/cm2_factor");
+    auto cm2_factor = settings.getAs<float>("render/post/tonemapper/cm2_factor");
     // The fractional aperture number; e.g., 11 means aperture “f/11.” It adjusts the size of the opening of the “camera
     // iris” and is expressed as a ratio. The higher this value, the lower the exposure.
-    float fStop = settings.getAs<float>("render/post/tonemapper/fStop");
+    auto fStop = settings.getAs<float>("render/post/tonemapper/fStop");
     // Controls the duration, in fractions of a second, that the “shutter” is open; e.g., the value 100 means that the
     // “shutter” is open for 1/100th of a second. The higher this value, the greater the exposure
-    float shutterSpeed = settings.getAs<float>("render/post/tonemapper/shutterSpeed");
+    auto shutterSpeed = settings.getAs<float>("render/post/tonemapper/shutterSpeed");
     // Specifies the main color temperature of the light sources; the color that will be mapped to “white” on output,
     // e.g., an incoming color of this hue/saturation will be mapped to grayscale, but its intensity will remain
     // unchanged. This is similar to white balance controls on digital cameras.
@@ -256,8 +256,8 @@ void MetalRender::render(Buffer* output)
     pUniformTonemap->exposureValue = exposureValue;
     pUniformData->exposureValue = exposureValue; // need for proper accumulation
 
-    const uint32_t totalSpp = settings.getAs<uint32_t>("render/pt/sppTotal");
-    const uint32_t samplesPerLaunch = settings.getAs<uint32_t>("render/pt/spp");
+    const auto totalSpp = settings.getAs<uint32_t>("render/pt/sppTotal");
+    const auto samplesPerLaunch = settings.getAs<uint32_t>("render/pt/spp");
     const int32_t leftSpp = totalSpp - getSharedContext().mSubframeIndex;
     // if accumulation is off then launch selected samples per pixel
     const uint32_t samplesThisLaunch =
@@ -383,7 +383,7 @@ Buffer* MetalRender::createBuffer(const BufferDesc& desc)
     assert(size != 0);
     MTL::Buffer* buff = mDevice->newBuffer(size, MTL::ResourceStorageModeManaged);
     assert(buff);
-    MetalBuffer* res = new MetalBuffer(buff, desc.format, desc.width, desc.height);
+    auto* res = new MetalBuffer(buff, desc.format, desc.width, desc.height);
     assert(res);
     return res;
 }
@@ -570,7 +570,7 @@ constexpr simd_float4x4 makeIdentity()
 
 MetalRender::Mesh* MetalRender::createMesh(const oka::Mesh& mesh)
 {
-    MetalRender::Mesh* result = new MetalRender::Mesh();
+    auto* result = new MetalRender::Mesh();
 
     const uint32_t triangleCount = mesh.mCount / 3;
 
@@ -665,8 +665,7 @@ void MetalRender::createAccelerationStructures()
 
     mInstanceBuffer = mDevice->newBuffer(
         sizeof(MTL::AccelerationStructureUserIDInstanceDescriptor) * instances.size(), MTL::ResourceStorageModeManaged);
-    MTL::AccelerationStructureUserIDInstanceDescriptor* instanceDescriptors =
-        (MTL::AccelerationStructureUserIDInstanceDescriptor*)mInstanceBuffer->contents();
+    auto* instanceDescriptors = (MTL::AccelerationStructureUserIDInstanceDescriptor*)mInstanceBuffer->contents();
     for (int i = 0; i < instances.size(); ++i)
     {
         const Instance& curr = instances[i];

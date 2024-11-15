@@ -1,7 +1,6 @@
 #pragma once
 
 #include "camera.h"
-#include "glm-wrapper.hpp"
 // #include "materials.h"
 // #undef float4
 // #undef float3

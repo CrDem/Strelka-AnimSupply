@@ -110,7 +110,7 @@ std::string Scene::getSceneDir()
 //  valid range of coordinates [-1; 1]
 uint32_t packNormals(const glm::float3& normal)
 {
-    uint32_t packed = (uint32_t)((normal.x + 1.0f) / 2.0f * 511.99999f);
+    auto packed = (uint32_t)((normal.x + 1.0f) / 2.0f * 511.99999f);
     packed += (uint32_t)((normal.y + 1.0f) / 2.0f * 511.99999f) << 10;
     packed += (uint32_t)((normal.z + 1.0f) / 2.0f * 511.99999f) << 20;
     return packed;
@@ -305,7 +305,7 @@ void Scene::updateAnimation(const float time)
 
 uint32_t Scene::createLight(const UniformLightDesc& desc)
 {
-    uint32_t lightId = (uint32_t)mLights.size();
+    auto lightId = (uint32_t)mLights.size();
     Light l;
     mLights.push_back(l);
     mLightDesc.push_back(desc);

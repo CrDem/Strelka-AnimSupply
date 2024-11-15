@@ -11,24 +11,21 @@ namespace oka
 class GlfwDisplay : public Display
 {
 public:
-    GlfwDisplay()
-    {
-    }
-    virtual ~GlfwDisplay()
-    {
-    }
+    GlfwDisplay() = default;
+    ~GlfwDisplay() override = default;
 
-    virtual void init(int width, int height, SettingsManager* settings) override;
-    virtual void setNativeDevice(void* device) override;
-    virtual void destroy() override;
+    void init(int width, int height, SettingsManager* settings) override;
+    void setNativeDevice(void* device) override;
+    void destroy() override;
 
-    virtual void onBeginFrame() override;
-    virtual void onEndFrame() override;
+    void onBeginFrame() override;
+    void onEndFrame() override;
 
     void* getDisplayNativeTexure() override;
 
-    virtual void drawFrame(ImageBuffer& result) override;
-    virtual void drawUI() override;
+    void drawFrame(ImageBuffer& result) override;
+    void drawUI() override;
+
 private:
     static constexpr size_t kMaxFramesInFlight = 3;
 

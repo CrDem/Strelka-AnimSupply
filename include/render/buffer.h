@@ -1,6 +1,6 @@
 #pragma once
-#include "common.h"
-#include <stdint.h>
+#include <cassert>
+#include <cstdint>
 #include <vector>
 
 namespace oka
