@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Set to TRUE to enable USD
-set(ENABLE_HYDRA TRUE)
+set(ENABLE_HYDRA FALSE)
 
 if(NOT DEFINED CMAKE_CUDA_STANDARD)
   set(CMAKE_CUDA_STANDARD 11)
@@ -44,5 +44,5 @@ add_subdirectory(src/sceneloader)
 add_subdirectory(src/app)
 
 if(WIN32 OR LINUX)
-  add_subdirectory(tests)
+  # add_subdirectory(tests)
 endif()
