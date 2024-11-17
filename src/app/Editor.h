@@ -260,14 +260,35 @@ public:
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         if (ImGui::Begin("Viewport"))
         {
-            const ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+            const ImVec2 availableSize = ImGui::GetContentRegionAvail();
             const ImVec2 scale = ImGui::GetIO().DisplayFramebufferScale;
-            // notify render on resolution changes
 
-            const ImVec2 mouse = ImVec2(scale.x * (ImGui::GetMousePos().x - ImGui::GetCursorScreenPos().x),
-                                        scale.y * (ImGui::GetMousePos().y - ImGui::GetCursorScreenPos().y));
+            auto calculateAspectRatioSize = [](ImVec2 availableSize, int fixedWidth, int fixedHeight)
+            {
+                float aspectRatio = static_cast<float>(fixedWidth) / static_cast<float>(fixedHeight);
+                float width = availableSize.x;
+                float height = availableSize.x / aspectRatio;
+                if (height > availableSize.y)
+                {
+                    height = availableSize.y;
+                    width = height * aspectRatio;
+                }
+                return ImVec2(width, height);
+            };
+            
+            // Even padding top and bottom
+            auto calculateVerticalPadding = [](ImVec2 availableSize, float renderedHeight) {
+                return (availableSize.y - renderedHeight) / 2.0f; 
+            };
+            
+            ImVec2 viewportSize = calculateAspectRatioSize(availableSize, 1024, 768);
+            float verticalPadding = calculateVerticalPadding(availableSize, viewportSize.y);
+
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+
+            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + verticalPadding);
             ImGui::ImageButton(m_display->getDisplayNativeTexure(), viewportSize);
+
             ImGui::PopStyleVar();
 
             if (ImGui::IsItemHovered())
