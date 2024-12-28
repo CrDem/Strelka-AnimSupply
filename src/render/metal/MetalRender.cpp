@@ -182,7 +182,8 @@ void MetalRender::render(Buffer* output)
     pUniformTonemap->height = height;
     pUniformTonemap->tonemapperType = settings.getAs<uint32_t>("render/pt/tonemapperType");
     pUniformTonemap->gamma = settings.getAs<float>("render/post/gamma");
-
+    pUniformTonemap->maxEDR = settings.getAs<float>("render/post/tonemapper/maxEDR");
+    
     bool settingsChanged = false;
 
     static uint32_t rectLightSamplingMethodPrev = 0;

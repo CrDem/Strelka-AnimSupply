@@ -93,6 +93,11 @@ void* GlfwDisplay::getDisplayNativeTexure()
     return mTexture;
 }
 
+float GlfwDisplay::getMaxEDR()
+{
+    NSWindow *nswin = glfwGetCocoaWindow(mWindow);
+    return nswin.screen.maximumExtendedDynamicRangeColorComponentValue;
+}
 
 void GlfwDisplay::drawFrame(ImageBuffer& result)
 {

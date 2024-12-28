@@ -17,6 +17,7 @@
 #include "imgui_impl_glfw.h"
 #include "ImGuizmo.h"
 #include "ImGuiFileDialog.h"
+#include "log.h"
 
 namespace oka
 {
@@ -153,6 +154,10 @@ public:
             m_scene->updateCamera(m_cameraController->getCamera(), 0);
 
             m_display->onBeginFrame();
+
+            auto maxEDR = m_display->getMaxEDR();
+            m_settingsManager->setAs<float>("render/post/tonemapper/maxEDR", maxEDR);
+            STRELKA_DEBUG("maxEDR: {}", maxEDR);
 
             m_render->render(outputBuffer);
             outputBuffer->map();
