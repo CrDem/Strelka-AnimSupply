@@ -71,8 +71,8 @@ void GlfwDisplay::init(int width, int height, SettingsManager* settings)
     layer = CA::MetalLayer::layer();
     layer->setDevice(_pDevice);
     layer->setPixelFormat(MTL::PixelFormatRGBA16Float);
-    CAMetalLayer* l = (__bridge CAMetalLayer*)layer;
-    const CFStringRef name = kCGColorSpaceExtendedLinearSRGB;
+    auto l = (__bridge CAMetalLayer*)layer;
+    const CFStringRef name = kCGColorSpaceExtendedDisplayP3;
     CGColorSpaceRef colorspace = CGColorSpaceCreateWithName(name);
     l.colorspace = colorspace;
     CGColorSpaceRelease(colorspace);
@@ -102,8 +102,7 @@ float GlfwDisplay::getMaxEDR()
 void GlfwDisplay::drawFrame(ImageBuffer& result)
 {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
-
-    bool needRecreate = (result.height != mTexHeight || result.width != mTexWidth);
+    const bool needRecreate = result.height != mTexHeight || result.width != mTexWidth;
     if (needRecreate)
     {
         mTexWidth = result.width;
@@ -114,22 +113,8 @@ void GlfwDisplay::drawFrame(ImageBuffer& result)
         }
         mTexture = buildTexture(mTexWidth, mTexHeight);
     }
-    {
-        MTL::Region region = MTL::Region::Make2D(0, 0, mTexWidth, mTexHeight);
-        mTexture->replaceRegion(region, 0, result.data, result.width * oka::Buffer::getElementSize(result.pixel_format));
-    }
-
-    // renderEncoder->pushDebugGroup(NS::String::string("display", NS::UTF8StringEncoding));
-
-    renderEncoder->setRenderPipelineState(_pPSO);
-    // [renderEncoder setRenderPipelineState: _pPSO];
-    renderEncoder->setFragmentTexture(mTexture, /* index */ 0);
-    // [renderEncoder setFragmentTexture: mTexture atIndex: 0];
-
-    renderEncoder->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, 0ul, 6ul);
-    // [renderEncoder drawPrimitives: MTL::PrimitiveTypeTriangle vertexStart: 0 vertexCount:6];
-
-    // renderEncoder->popDebugGroup();
+    MTL::Region region = MTL::Region::Make2D(0, 0, mTexWidth, mTexHeight);
+    mTexture->replaceRegion(region, 0, result.data, result.width * oka::Buffer::getElementSize(result.pixel_format));
     pPool->release();
 }
 

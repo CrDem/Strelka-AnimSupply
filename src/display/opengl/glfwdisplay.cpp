@@ -5,8 +5,6 @@
 #include "imgui_impl_opengl3.h"
 #define GL_SILENCE_DEPRECATION
 
-#include <sstream>
-
 using namespace oka;
 
 inline const char* getGLErrorString(GLenum error)

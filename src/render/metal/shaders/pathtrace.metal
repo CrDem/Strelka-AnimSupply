@@ -68,10 +68,11 @@ float3 transformDirection(float3 p, float4x4 transform) {
 //  valid range of coordinates [-1; 1]
 static float3 unpackNormal(uint32_t val)
 {
+    constexpr float scale = 1.0f / 256.0f;
     float3 normal;
-    normal.z = ((val & 0xfff00000) >> 20) / 511.99999f * 2.0f - 1.0f;
-    normal.y = ((val & 0x000ffc00) >> 10) / 511.99999f * 2.0f - 1.0f;
-    normal.x = (val & 0x000003ff) / 511.99999f * 2.0f - 1.0f;
+    normal.z = ((val & 0xfff00000) >> 20) * scale - 1.0f;
+    normal.y = ((val & 0x000ffc00) >> 10) * scale - 1.0f;
+    normal.x = (val & 0x000003ff) * scale - 1.0f;
     return normal;
 }
 
@@ -160,7 +161,6 @@ struct MaterialSample
     float pdf;
     int event_type;
 };
-
 
 void materialInit(thread MaterialState& state, const device Material& material)
 {
@@ -439,7 +439,7 @@ kernel void raytracingKernel(
                     objectToWorldSpaceTransform[column][row] = instances[instanceIndex].transformationMatrix[column][row];
 
             const float2 barycentrics = intersection.triangle_barycentric_coord;
-            // // Compute the intersection point in world space.
+            // Compute the intersection point in world space.
             // float3 worldPosition = ray.origin + ray.direction * intersection.distance;
             const float3 worldPosition = transformPoint(interpolateAttrib(p0, p1, p2, barycentrics), objectToWorldSpaceTransform);
             const float2 uv = interpolateAttrib(uv0, uv1, uv2, barycentrics);

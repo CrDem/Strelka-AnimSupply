@@ -9,8 +9,6 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <memory>
-#include <optional>
-
 #include "gltfloader.h"
 
 #include "imgui.h"
@@ -42,14 +40,14 @@ private:
 public:
     Editor()
     {
-        m_settingsManager = std::unique_ptr<SettingsManager>(new SettingsManager());
+        m_settingsManager = std::make_unique<SettingsManager>();
 
-        m_scene = std::unique_ptr<Scene>(new Scene());
+        m_scene = std::make_unique<Scene>();
         m_display = std::unique_ptr<Display>(DisplayFactory::createDisplay());
         m_render = std::unique_ptr<Render>(RenderFactory::createRender());
-        m_sharedCtx = std::unique_ptr<SharedContext>(new SharedContext());
+        m_sharedCtx = std::make_unique<SharedContext>();
 
-        m_sceneLoader = std::unique_ptr<GltfLoader>(new GltfLoader());
+        m_sceneLoader = std::make_unique<GltfLoader>();
 
         m_render->setScene(m_scene.get());
         m_render->setSettingsManager(m_settingsManager.get());
@@ -63,9 +61,7 @@ public:
 #endif
         m_display->init(1024, 768, m_settingsManager.get());
     }
-    ~Editor()
-    {
-    }
+    ~Editor() = default;
 
     void prepare()
     {
@@ -78,7 +74,7 @@ public:
         camera.updateViewMatrix();
         m_scene->addCamera(camera);
 
-        m_cameraController = std::unique_ptr<CameraController>(new CameraController(m_scene->getCamera(0), true));
+        m_cameraController = std::make_unique<CameraController>(m_scene->getCamera(0), true);
         m_display->setInputHandler(m_cameraController.get());
         loadSettings();
     }
@@ -113,7 +109,7 @@ public:
         m_settingsManager->setAs<bool>("render/pt/needScreenshot", false);
         m_settingsManager->setAs<bool>("render/pt/screenshotSPP", false);
         m_settingsManager->setAs<uint32_t>("render/pt/rectLightSamplingMethod", 0);
-        m_settingsManager->setAs<bool>("render/enableValidation", 0);
+        m_settingsManager->setAs<bool>("render/enableValidation", false);
         m_settingsManager->setAs<std::string>("resource/searchPath", resourceSearchPath);
         // Postprocessing settings:
         m_settingsManager->setAs<float>("render/post/tonemapper/filmIso", 100.0f);
@@ -241,7 +237,7 @@ public:
                     camera.updateViewMatrix();
                     m_scene->addCamera(camera);
 
-                    m_sharedCtx.reset(new SharedContext());
+                    m_sharedCtx = std::make_unique<SharedContext>();
 
                     m_render.reset(RenderFactory::createRender());
                     m_render->setSettingsManager(m_settingsManager.get());
@@ -351,15 +347,15 @@ public:
             }
             m_settingsManager->setAs<uint32_t>("render/pt/rectLightSamplingMethod", currentRectlightSamplingMethodItemId);
 
-            uint32_t maxDepth = m_settingsManager->getAs<uint32_t>("render/pt/depth");
+            auto maxDepth = m_settingsManager->getAs<uint32_t>("render/pt/depth");
             ImGui::SliderInt("Max Depth", (int*)&maxDepth, 1, 16);
             m_settingsManager->setAs<uint32_t>("render/pt/depth", maxDepth);
 
-            uint32_t sppTotal = m_settingsManager->getAs<uint32_t>("render/pt/sppTotal");
+            auto sppTotal = m_settingsManager->getAs<uint32_t>("render/pt/sppTotal");
             ImGui::SliderInt("SPP Total", (int*)&sppTotal, 1, 10000);
             m_settingsManager->setAs<uint32_t>("render/pt/sppTotal", sppTotal);
 
-            uint32_t sppSubframe = m_settingsManager->getAs<uint32_t>("render/pt/spp");
+            auto sppSubframe = m_settingsManager->getAs<uint32_t>("render/pt/spp");
             ImGui::SliderInt("SPP Subframe", (int*)&sppSubframe, 1, 32);
             m_settingsManager->setAs<uint32_t>("render/pt/spp", sppSubframe);
 
@@ -375,7 +371,7 @@ public:
             m_settingsManager->setAs<bool>("render/pt/needScreenshot", true);
         }
 
-        float cameraSpeed = m_settingsManager->getAs<float>("render/cameraSpeed");
+        auto cameraSpeed = m_settingsManager->getAs<float>("render/cameraSpeed");
         ImGui::InputFloat("Camera Speed", (float*)&cameraSpeed, 0.5);
         m_settingsManager->setAs<float>("render/cameraSpeed", cameraSpeed);
 
@@ -399,14 +395,14 @@ public:
         }
         m_settingsManager->setAs<uint32_t>("render/pt/tonemapperType", currentTonemapItemId);
 
-        float gamma = m_settingsManager->getAs<float>("render/post/gamma");
+        auto gamma = m_settingsManager->getAs<float>("render/post/gamma");
         ImGui::InputFloat("Gamma", (float*)&gamma, 0.5);
         m_settingsManager->setAs<float>("render/post/gamma", gamma);
 
-        float materialRayTmin = m_settingsManager->getAs<float>("render/pt/dev/materialRayTmin");
+        auto materialRayTmin = m_settingsManager->getAs<float>("render/pt/dev/materialRayTmin");
         ImGui::InputFloat("Material ray T min", (float*)&materialRayTmin, 0.1);
         m_settingsManager->setAs<float>("render/pt/dev/materialRayTmin", materialRayTmin);
-        float shadowRayTmin = m_settingsManager->getAs<float>("render/pt/dev/shadowRayTmin");
+        auto shadowRayTmin = m_settingsManager->getAs<float>("render/pt/dev/shadowRayTmin");
         ImGui::InputFloat("Shadow ray T min", (float*)&shadowRayTmin, 0.1);
         m_settingsManager->setAs<float>("render/pt/dev/shadowRayTmin", shadowRayTmin);
 
@@ -424,7 +420,7 @@ public:
         glm::float4x4 cameraView = cam.getView();
         glm::float4x4 cameraProjection = cam.getPerspective();
         ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection), operation, mCurrentGizmoMode,
-                             matrix, NULL, nullptr, nullptr, nullptr);
+                             matrix, nullptr, nullptr, nullptr, nullptr);
     }
 
     void displayLightSettings(uint32_t lightId, Scene& scene, const uint32_t& selectedCamera)
