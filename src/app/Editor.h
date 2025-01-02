@@ -153,23 +153,19 @@ public:
 
             auto maxEDR = m_display->getMaxEDR();
             m_settingsManager->setAs<float>("render/post/tonemapper/maxEDR", maxEDR);
-            STRELKA_DEBUG("maxEDR: {}", maxEDR);
 
             m_render->render(outputBuffer);
-            outputBuffer->map();
             oka::ImageBuffer outputImage;
-            outputImage.data = outputBuffer->getHostPointer();
-            outputImage.dataSize = outputBuffer->getHostDataSize();
+            outputImage.deviceData = outputBuffer->getDevicePointer();
             outputImage.height = outputBuffer->height();
             outputImage.width = outputBuffer->width();
             outputImage.pixel_format = oka::BufferFormat::FLOAT4;
+            outputImage.dataSize = outputBuffer->width() * outputBuffer->height() * outputBuffer->getElementSize();
             m_display->drawFrame(outputImage); // blit rendered image to swapchain
 
             drawUI(); // render ui to swapchain image in window resolution
             m_display->drawUI();
             m_display->onEndFrame(); // submit command buffer and present
-
-            outputBuffer->unmap();
 
             const uint32_t currentSpp = m_sharedCtx->mSubframeIndex;
             auto finish = std::chrono::high_resolution_clock::now();

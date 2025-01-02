@@ -988,6 +988,8 @@ void OptiXRender::render(Buffer* output)
     if (params.debug != 1)
     {
         // do not run post processing for debug output
+        float maxEDR = settings.getAs<float>("render/post/tonemapper/maxEDR");
+        exposureValue *= maxEDR;
         tonemap(tonemapperType, exposureValue, gamma, params.image, width, height);
     }
 
