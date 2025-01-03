@@ -19,16 +19,16 @@ private:
 
 public:
     GlfwDisplay();
-    virtual ~GlfwDisplay();
+    ~GlfwDisplay() override;
 
     virtual void init(int width, int height, SettingsManager* settings) override;
-    void destroy();
+    void destroy() override;
 
-    void onBeginFrame();
-    void onEndFrame();
+    void onBeginFrame() override;
+    void onEndFrame() override;
 
-    void drawFrame(ImageBuffer& result);
-    void drawUI();
+    void drawFrame(ImageBuffer& result) override;
+    void drawUI() override;
 
     void* getDisplayNativeTexure() override;
     float getMaxEDR() override;

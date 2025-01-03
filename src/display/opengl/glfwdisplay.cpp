@@ -57,7 +57,15 @@ GlfwDisplay::GlfwDisplay(/* args */)
 
 GlfwDisplay::~GlfwDisplay()
 {
-    destroy();
+    cudaGraphicsUnregisterResource(cudaResource);
+
+    glDeleteTextures(1, &m_render_tex);
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+    glfwDestroyWindow(mWindow);
+    glfwTerminate();
 }
 
 void GlfwDisplay::init(int width, int height, SettingsManager* settings)
@@ -136,22 +144,14 @@ void GlfwDisplay::drawFrame(ImageBuffer& result)
     cudaGraphicsMapResources(1, &cudaResource);
     cudaGraphicsSubResourceGetMappedArray(&array, cudaResource, 0, 0);
 
-    cudaMemcpyToArray(array, 0, 0, result.deviceData, result.dataSize, cudaMemcpyDeviceToDevice);
+    // cudaMemcpyToArray(array, 0, 0, result.deviceData, result.dataSize, cudaMemcpyDeviceToDevice);
+    cudaMemcpy2DToArray(array, 0, 0, result.deviceData, result.width * 4 * sizeof(float), result.width* 4 * sizeof(float), result.height, cudaMemcpyDeviceToDevice);
 
     cudaGraphicsUnmapResources(1, &cudaResource);
 }
 
 void GlfwDisplay::destroy()
 {
-    cudaGraphicsUnregisterResource(cudaResource);
-
-    glDeleteTextures(1, &m_render_tex);
-
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-    glfwDestroyWindow(mWindow);
-    glfwTerminate();
 }
 
 void GlfwDisplay::onBeginFrame()
