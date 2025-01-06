@@ -181,9 +181,9 @@ void materialInit(thread MaterialState& state, const device Material& material)
 
 void materialEvaluate(thread MaterialEval& data, thread const MaterialState& state)
 {
-    data.bsdf_diffuse = state.diffuse * dot(state.normal, data.inDir) / M_PI_F; 
+    data.bsdf_diffuse = state.diffuse * dot(state.normal, data.inDir) * M_1_PI_F; 
     data.bsdf_glossy = float3(0.0f);
-    data.pdf = dot(state.normal, data.inDir) / M_PI_F;
+    data.pdf = dot(state.normal, data.inDir) * M_1_PI_F;
 }
 
 void materialSample(thread MaterialSample& data, thread MaterialState& state)
@@ -196,7 +196,7 @@ void materialSample(thread MaterialSample& data, thread MaterialState& state)
         data.k2.x = state.normal.x + b * cos(phi);
         data.k2.y = state.normal.y + b * sin(phi);
         data.k2.z = state.normal.z + a;
-        data.pdf = a / M_PI_F;
+        data.pdf = a * M_1_PI_F;
     }
     data.bsdf_over_pdf = state.diffuse;
 }
