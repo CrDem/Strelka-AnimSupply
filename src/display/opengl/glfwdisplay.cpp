@@ -75,11 +75,17 @@ void GlfwDisplay::init(int width, int height, SettingsManager* settings)
     mSettings = settings;
 
     glfwInit();
-    const char* glsl_version = "#version 130";
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+    
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_RED_BITS, 16);
+    glfwWindowHint(GLFW_GREEN_BITS, 16);
+    glfwWindowHint(GLFW_BLUE_BITS, 16);
+    glfwWindowHint(GLFW_ALPHA_BITS, 16);
+    glfwWindowHint(GLFW_DEPTH_BITS, 24);
+
 
     mWindow = glfwCreateWindow(mWindowWidth, mWindowHeight, "Strelka", nullptr, nullptr);
     glfwSetWindowUserPointer(mWindow, this);
@@ -110,6 +116,7 @@ void GlfwDisplay::init(int width, int height, SettingsManager* settings)
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(mWindow, true);
+    const char* glsl_version = "#version 450 core";
     ImGui_ImplOpenGL3_Init(glsl_version);
 }
 
