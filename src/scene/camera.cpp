@@ -221,17 +221,35 @@ void Camera::update(float deltaTime)
         {
             float moveSpeed = deltaTime * movementSpeed;
             if (keys.up)
+            {
                 position += getWorldUp() * moveSpeed;
+                keys.up = false;
+            }
             if (keys.down)
+            {
                 position -= getWorldUp() * moveSpeed;
+                keys.down = false;
+            }
             if (keys.left)
+            {
                 position -= getRight() * moveSpeed;
+                keys.left = false;
+            }
             if (keys.right)
+            {
                 position += getRight() * moveSpeed;
+                keys.right = false;
+            }
             if (keys.forward)
+            {
                 position += getFront() * moveSpeed;
+                keys.forward = false;
+            }
             if (keys.back)
+            {
                 position -= getFront() * moveSpeed;
+                keys.back = false;
+            }
             updateViewMatrix();
         }
     }
