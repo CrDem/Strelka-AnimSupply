@@ -185,7 +185,6 @@ public:
         ImGuizmo::SetOrthographic(false);
         ImGuizmo::BeginFrame();
 
-        // displayLightSettings(1, *m_scene, 0);
 
         ImGuiIO& io = ImGui::GetIO();
 
@@ -287,6 +286,10 @@ public:
             ImGui::SetCursorPosY(ImGui::GetCursorPosY() + verticalPadding);
             ImGui::ImageButton(m_display->getDisplayNativeTexure(), viewportSize);
 
+            ImGuizmo::SetOrthographic(false);
+            ImGuizmo::SetDrawlist();
+            ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y + verticalPadding, viewportSize.x, viewportSize.y);
+
             ImGui::PopStyleVar();
 
             if (ImGui::IsItemHovered())
@@ -310,6 +313,9 @@ public:
 
         ImGui::End();
         ImGui::PopStyleVar();
+
+        // TODO: move to separate imgui widget
+        displayLightSettings(1, *m_scene, 0);
 
         ImGui::Begin("Menu:"); // begin window
 
@@ -419,15 +425,13 @@ public:
         ImGui::Render();
     }
 
-    void showGizmo(Camera& cam, float camDistance, float* matrix, ImGuizmo::OPERATION operation)
+    void showGizmo(Camera& cam, float* matrix, ImGuizmo::OPERATION operation)
     {
         static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::LOCAL);
-        ImGuiIO& io = ImGui::GetIO();
-        ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
-        glm::float4x4 cameraView = cam.getView();
-        glm::float4x4 cameraProjection = cam.getPerspective();
-        ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection), operation, mCurrentGizmoMode,
-                             matrix, nullptr, nullptr, nullptr, nullptr);
+        glm::float4x4 cameraView = cam.matrices.view;
+        glm::float4x4 cameraProjection = cam.matrices.perspective;
+        ImGuizmo::Manipulate(
+            glm::value_ptr(cameraView), glm::value_ptr(cameraProjection), operation, mCurrentGizmoMode, matrix);
     }
 
     void displayLightSettings(uint32_t lightId, Scene& scene, const uint32_t& selectedCamera)
@@ -447,7 +451,7 @@ public:
         if (ImGui::RadioButton("Rotate", mCurrentGizmoOperation == ImGuizmo::ROTATE))
             mCurrentGizmoOperation = ImGuizmo::ROTATE;
 
-        glm::float2 scale = { currLightDesc.width, currLightDesc.height };
+        
         ImGui::Text("Rectangle light");
         ImGui::Spacing();
         ImGui::AlignTextToFramePadding();
@@ -455,15 +459,15 @@ public:
         ImGui::Spacing();
         ImGui::DragFloat3("Orientation", &currLightDesc.orientation.x);
         ImGui::Spacing();
-        ImGui::DragFloat2("Width/Height", &scale.x, 0.1f, 0.005f);
+        float width_height[2] = { currLightDesc.width, currLightDesc.height };
+        ImGui::DragFloat2("Width/Height", width_height, 0.1f, 0.005f);
         ImGui::Spacing();
         ImGui::ColorEdit3("Color", &currLightDesc.color.x);
         ImGui::DragFloat("Intensity", &currLightDesc.intensity, 1.0f, 1.0f);
         currLightDesc.intensity = glm::clamp(currLightDesc.intensity, 1.0f, std::numeric_limits<float>::max());
         // upd current scale params.
-        scale = glm::clamp(scale, 0.005f, std::numeric_limits<float>::max());
-        currLightDesc.width = scale.x;
-        currLightDesc.height = scale.y;
+        currLightDesc.width = glm::clamp(width_height[0], 0.005f, std::numeric_limits<float>::max());
+        currLightDesc.height = glm::clamp(width_height[1], 0.005f, std::numeric_limits<float>::max());
 
         ImGuizmo::SetID(lightId);
 
@@ -471,15 +475,13 @@ public:
         const glm::float4x4 translationMatrix = glm::translate(glm::float4x4(1.0f), currLightDesc.position);
         glm::quat rotation = glm::quat(glm::radians(currLightDesc.orientation)); // to quaternion
         const glm::float4x4 rotationMatrix{ rotation };
-        // light have o-y o-z scaling
-        const glm::float4x4 scaleMatrix =
-            glm::scale(glm::float4x4(1.0f), glm::float3(1.0f, currLightDesc.width, currLightDesc.height));
+        glm::float3 scale = { currLightDesc.width, currLightDesc.height, 1.0f };
+        const glm::float4x4 scaleMatrix = glm::scale(glm::float4x4(1.0f), scale);
 
-        float camDist = glm::distance(camPos, currLightDesc.position);
         glm::float4x4 lightXform = translationMatrix * rotationMatrix * scaleMatrix;
 
         // show controls
-        showGizmo(cam, camDist, &lightXform[0][0], mCurrentGizmoOperation);
+        showGizmo(cam, &lightXform[0][0], mCurrentGizmoOperation);
 
         // need to deconstruct final xform to components
         float matrixTranslation[3], matrixRotation[3], matrixScale[3];
@@ -488,8 +490,8 @@ public:
         // write result to description
         currLightDesc.position = glm::float3(matrixTranslation[0], matrixTranslation[1], matrixTranslation[2]);
         currLightDesc.orientation = glm::float3(matrixRotation[0], matrixRotation[1], matrixRotation[2]);
-        currLightDesc.width = matrixScale[1];
-        currLightDesc.height = matrixScale[2];
+        // currLightDesc.width = matrixScale[1];
+        // currLightDesc.height = matrixScale[2];
 
         // update in scene
         Scene::UniformLightDesc desc{};
