@@ -3,8 +3,10 @@
 
 using namespace oka;
 
-oka::MetalBuffer::MetalBuffer(MTL::Buffer* buff, BufferFormat format, uint32_t width, uint32_t height) : mBuffer(buff)
+oka::MetalBuffer::MetalBuffer(MTL::Buffer* buff, BufferFormat format, uint32_t width, uint32_t height)
+    : mBuffer(buff)
 {
+    mDeviceData = buff;
     mFormat = format;
     mWidth = width;
     mHeight = height;

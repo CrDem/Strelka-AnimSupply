@@ -113,8 +113,18 @@ void GlfwDisplay::drawFrame(ImageBuffer& result)
         }
         mTexture = buildTexture(mTexWidth, mTexHeight);
     }
-    MTL::Region region = MTL::Region::Make2D(0, 0, mTexWidth, mTexHeight);
-    mTexture->replaceRegion(region, 0, result.data, result.width * oka::Buffer::getElementSize(result.pixel_format));
+
+    mBlitEncoder = mCommandBuffer->blitCommandEncoder();
+
+    mBlitEncoder->copyFromBuffer(
+        (MTL::Buffer*) result.deviceData, 0, 
+        oka::Buffer::getElementSize(result.pixel_format) * mTexWidth, 
+        oka::Buffer::getElementSize(result.pixel_format) * mTexWidth * mTexHeight, 
+        MTL::Size{mTexWidth, mTexHeight, 1}, 
+        mTexture, 0, 0, MTL::Origin{0, 0, 0});
+
+    mBlitEncoder->endEncoding();
+
     pPool->release();
 }
 
@@ -203,44 +213,37 @@ void GlfwDisplay::onBeginFrame()
 
     float clear_color[4] = {0.45f, 0.55f, 0.60f, 1.00f};
 
-    commandBuffer = _pCommandQueue->commandBuffer();
+    mCommandBuffer = _pCommandQueue->commandBuffer();
     renderPassDescriptor->colorAttachments()->object(0)->setClearColor(MTL::ClearColor::Make(clear_color[0] * clear_color[3], clear_color[1] * clear_color[3], clear_color[2] * clear_color[3], clear_color[3]));
     renderPassDescriptor->colorAttachments()->object(0)->setTexture(drawable->texture());
     renderPassDescriptor->colorAttachments()->object(0)->setLoadAction(MTL::LoadActionClear);
     renderPassDescriptor->colorAttachments()->object(0)->setStoreAction(MTL::StoreActionStore);
 
-    renderEncoder = commandBuffer->renderCommandEncoder(renderPassDescriptor);
-    // pPool->release();
-    
     // Start the Dear ImGui frame
     ImGui_ImplMetal_NewFrame((__bridge MTLRenderPassDescriptor*)renderPassDescriptor);
 }
 
 void GlfwDisplay::onEndFrame()
 {
-    // NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
+    mCommandBuffer->presentDrawable(drawable);
+    mCommandBuffer->commit();
 
-    renderEncoder->endEncoding();
-    commandBuffer->presentDrawable(drawable);
-    commandBuffer->commit();
-
-    renderEncoder->release();
-    commandBuffer->release();
+    mRenderEncoder->release();
+    mCommandBuffer->release();
     drawable->release();
 
     glfwSwapBuffers(mWindow);
-    // pPool->release();
 }
 
 void GlfwDisplay::drawUI()
 {
+    mRenderEncoder = mCommandBuffer->renderCommandEncoder(renderPassDescriptor);
 @autoreleasepool 
     {
 
-        // Display::drawUI();
-
         ImGui_ImplMetal_RenderDrawData(ImGui::GetDrawData(),
-        (__bridge id<MTLCommandBuffer>)(commandBuffer),
-        (__bridge id<MTLRenderCommandEncoder>)renderEncoder);
+        (__bridge id<MTLCommandBuffer>)(mCommandBuffer),
+        (__bridge id<MTLRenderCommandEncoder>)mRenderEncoder);
     }
+    mRenderEncoder->endEncoding();
 }

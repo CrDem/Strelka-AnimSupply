@@ -76,7 +76,7 @@ public:
     virtual void onEndFrame() = 0;
 
     virtual void drawFrame(ImageBuffer& result) = 0;
-    virtual void drawUI();
+    virtual void drawUI() = 0;
 
     void setViewPortHovered(bool state)
     {

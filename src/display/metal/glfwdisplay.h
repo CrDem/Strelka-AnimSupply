@@ -45,8 +45,9 @@ private:
     MTL::Texture* buildTexture(uint32_t width, uint32_t heigth);
     void buildShaders();
     
-    MTL::CommandBuffer* commandBuffer;
-    MTL::RenderCommandEncoder* renderEncoder;
+    MTL::CommandBuffer* mCommandBuffer;
+    MTL::RenderCommandEncoder* mRenderEncoder;
+    MTL::BlitCommandEncoder* mBlitEncoder;
     CA::MetalDrawable* drawable;
 };
 
