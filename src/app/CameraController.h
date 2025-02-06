@@ -12,6 +12,8 @@ class CameraController : public oka::InputHandler
     float rotationSpeed = 0.025f;
     float movementSpeed = 1.0f;
 
+    bool mIsViewportHovered = false;
+
 public:
     virtual ~CameraController() = default;
 
@@ -25,6 +27,20 @@ public:
     void updateViewMatrix()
     {
         mCam.updateViewMatrix();
+    }
+
+    void setViewportHovered(bool hovered)
+    {
+        mIsViewportHovered = hovered;
+        if (!mIsViewportHovered)
+        {
+            mCam.keys.left = false;
+            mCam.keys.right = false;
+            mCam.keys.up = false;
+            mCam.keys.down = false;
+            mCam.keys.forward = false;
+            mCam.keys.back = false;
+        }
     }
 
     Camera& getCamera()

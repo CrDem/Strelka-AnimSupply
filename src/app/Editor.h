@@ -252,7 +252,8 @@ public:
         const char* debugItems[] = { "None", "Normals", "Diffuse AOV", "Specular AOV" };
         static int currentDebugItemId = 0;
 
-        m_display->setViewPortHovered(false);
+        static bool mIsHoveredViewport = false; // need to track previous state
+        bool thisFrameHovered = false;
 
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         if (ImGui::Begin("Viewport"))
@@ -295,8 +296,18 @@ public:
                     // picking code, selecting
                 }
                 m_display->setViewPortHovered(true);
+                thisFrameHovered = true;
             }
         }
+
+        if (mIsHoveredViewport && !thisFrameHovered)
+        {
+            // if mouse leaves viewport -> reset camera movement affected by keyboard
+            m_display->setViewPortHovered(false);
+            m_cameraController->setViewportHovered(false);
+        } 
+        mIsHoveredViewport = thisFrameHovered;
+
         ImGui::End();
         ImGui::PopStyleVar();
 
