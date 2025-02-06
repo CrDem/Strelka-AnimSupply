@@ -201,6 +201,11 @@ void MetalRender::render(Buffer* output)
     settingsChanged |= (sspTotalPrev > sspTotal); // reset only if new spp less than already accumulated
     sspTotalPrev = sspTotal;
 
+    static uint32_t sppPrev = 0;
+    pUniformData->samples_per_launch = settings.getAs<uint32_t>("render/pt/spp");
+    settingsChanged |= (sppPrev != pUniformData->samples_per_launch);
+    sppPrev = pUniformData->samples_per_launch;
+
     if (settingsChanged)
     {
         getSharedContext().mSubframeIndex = 0;
@@ -257,15 +262,14 @@ void MetalRender::render(Buffer* output)
     pUniformTonemap->exposureValue = exposureValue;
     pUniformData->exposureValue = exposureValue; // need for proper accumulation
 
-    const auto totalSpp = settings.getAs<uint32_t>("render/pt/sppTotal");
-    const auto samplesPerLaunch = settings.getAs<uint32_t>("render/pt/spp");
-    const int32_t leftSpp = totalSpp - getSharedContext().mSubframeIndex;
+    const auto samplesPerLaunch = pUniformData->samples_per_launch;
+    const int32_t leftSpp = sspTotal - getSharedContext().mSubframeIndex;
     // if accumulation is off then launch selected samples per pixel
     const uint32_t samplesThisLaunch =
         enableAccumulation ? std::min((int32_t)samplesPerLaunch, leftSpp) : samplesPerLaunch;
     if (samplesThisLaunch != 0)
     {
-        pUniformData->samples_per_launch = samplesThisLaunch;
+        pUniformData->samples_per_launch = samplesThisLaunch; // TODO: implement in pt kernel
 
         pUniformBuffer->didModifyRange(NS::Range::Make(0, sizeof(Uniforms)));
         pUniformTMBuffer->didModifyRange(NS::Range::Make(0, sizeof(UniformsTonemap)));

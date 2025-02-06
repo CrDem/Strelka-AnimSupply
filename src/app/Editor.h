@@ -241,9 +241,6 @@ public:
             ImGuiFileDialog::Instance()->Close();
         }
 
-        const char* debugItems[] = { "None", "Normals", "Diffuse AOV", "Specular AOV" };
-        static int currentDebugItemId = 0;
-
         static bool mIsHoveredViewport = false; // need to track previous state
         bool thisFrameHovered = false;
 
@@ -310,16 +307,22 @@ public:
         // TODO: move to separate imgui widget
         // displayLightSettings(1, *m_scene, 0);
 
-        ImGui::Begin("Menu:"); // begin window
+        ImGui::Begin("Render Settings:"); // begin window
 
-        if (ImGui::BeginCombo("Debug view", debugItems[currentDebugItemId]))
+        const char* debugViewOptions[] = { "None", "Normals", "Diffuse AOV", "Specular AOV" };
+        static int currentDebugViewOption = 0;
+        if (ImGui::BeginCombo("Debug view", debugViewOptions[currentDebugViewOption]))
         {
-            for (int n = 0; n < IM_ARRAYSIZE(debugItems); n++)
+            for (int n = 0; n < IM_ARRAYSIZE(debugViewOptions); n++)
             {
-                bool is_selected = (currentDebugItemId == n);
-                if (ImGui::Selectable(debugItems[n], is_selected))
+                bool is_selected = (currentDebugViewOption == n);
+                if (ImGui::Selectable(debugViewOptions[n], is_selected))
                 {
-                    currentDebugItemId = n;
+                    if (currentDebugViewOption != n)
+                    {
+                        currentDebugViewOption = n;
+                        m_settingsManager->setAs<uint32_t>("render/pt/debug", currentDebugViewOption);
+                    }
                 }
                 if (is_selected)
                 {
@@ -328,46 +331,52 @@ public:
             }
             ImGui::EndCombo();
         }
-        m_settingsManager->setAs<uint32_t>("render/pt/debug", currentDebugItemId);
 
         if (ImGui::TreeNode("Path Tracer"))
         {
             const char* rectlightSamplingMethodItems[] = { "Uniform", "Advanced" };
             static int currentRectlightSamplingMethodItemId = 0;
-            if (ImGui::BeginCombo(
-                    "Rect Light Sampling", rectlightSamplingMethodItems[currentRectlightSamplingMethodItemId]))
+            if (ImGui::BeginCombo("Rect Light Sampling", rectlightSamplingMethodItems[currentRectlightSamplingMethodItemId]))
             {
-                for (int n = 0; n < IM_ARRAYSIZE(rectlightSamplingMethodItems); n++)
+                for (const auto& item : rectlightSamplingMethodItems)
                 {
-                    bool is_selected = (currentRectlightSamplingMethodItemId == n);
-                    if (ImGui::Selectable(rectlightSamplingMethodItems[n], is_selected))
+                    bool is_selected = (item == rectlightSamplingMethodItems[currentRectlightSamplingMethodItemId]);
+                    if (ImGui::Selectable(item, is_selected))
                     {
-                        currentRectlightSamplingMethodItemId = n;
+                        currentRectlightSamplingMethodItemId = &item - rectlightSamplingMethodItems;
                     }
                     if (is_selected)
                     {
                         ImGui::SetItemDefaultFocus();
                     }
                 }
+                m_settingsManager->setAs<uint32_t>("render/pt/rectLightSamplingMethod", currentRectlightSamplingMethodItemId);
                 ImGui::EndCombo();
             }
-            m_settingsManager->setAs<uint32_t>("render/pt/rectLightSamplingMethod", currentRectlightSamplingMethodItemId);
 
             auto maxDepth = m_settingsManager->getAs<uint32_t>("render/pt/depth");
-            ImGui::SliderInt("Max Depth", (int*)&maxDepth, 1, 16);
-            m_settingsManager->setAs<uint32_t>("render/pt/depth", maxDepth);
+            if (ImGui::SliderInt("Max Depth", (int*)&maxDepth, 1, 16))
+            {
+                m_settingsManager->setAs<uint32_t>("render/pt/depth", maxDepth);
+            }
 
             auto sppTotal = m_settingsManager->getAs<uint32_t>("render/pt/sppTotal");
-            ImGui::SliderInt("SPP Total", (int*)&sppTotal, 1, 10000);
-            m_settingsManager->setAs<uint32_t>("render/pt/sppTotal", sppTotal);
+            if (ImGui::SliderInt("SPP Total", (int*)&sppTotal, 1, 10000))
+            {
+                m_settingsManager->setAs<uint32_t>("render/pt/sppTotal", sppTotal);
+            }
 
             auto sppSubframe = m_settingsManager->getAs<uint32_t>("render/pt/spp");
-            ImGui::SliderInt("SPP Subframe", (int*)&sppSubframe, 1, 32);
-            m_settingsManager->setAs<uint32_t>("render/pt/spp", sppSubframe);
+            if (ImGui::SliderInt("SPP Subframe", (int*)&sppSubframe, 1, 32))
+            {
+                m_settingsManager->setAs<uint32_t>("render/pt/spp", sppSubframe);
+            }
 
-            bool enableAccumulation = m_settingsManager->getAs<bool>("render/pt/enableAcc");
-            ImGui::Checkbox("Enable Path Tracer Acc", &enableAccumulation);
-            m_settingsManager->setAs<bool>("render/pt/enableAcc", enableAccumulation);
+            bool accumulationEnabled = m_settingsManager->getAs<bool>("render/pt/enableAcc");
+            if (ImGui::Checkbox("Enable Path Tracer Acc", &accumulationEnabled))
+            {
+                m_settingsManager->setAs<bool>("render/pt/enableAcc", accumulationEnabled);
+            }
 
             ImGui::TreePop();
         }
