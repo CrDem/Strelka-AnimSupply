@@ -28,11 +28,11 @@ if(WIN32 OR LINUX)
       ${ROOT_HOME}/src/display/opengl/glfwdisplay.cpp)
 
   add_library(${DISPLAYLIB_NAME} STATIC ${DISPLAY_SOURCES} ${IMGUI_SOURCES})
-  target_include_directories(${DISPLAYLIB_NAME} PUBLIC ${ROOT_HOME}/include/)
-  target_include_directories(${DISPLAYLIB_NAME}
-                             PUBLIC ${ROOT_HOME}/include/display)
-  target_include_directories(${DISPLAYLIB_NAME}
-                             PUBLIC ${ROOT_HOME}/external/imgui/)
+  target_include_directories(${DISPLAYLIB_NAME} PUBLIC
+    ${ROOT_HOME}/include/
+    ${ROOT_HOME}/include/display
+    ${ROOT_HOME}/external/imgui/
+  )
 
   include_directories(${CUDA_INCLUDE_DIRS})
   link_directories(${CUDA_LIBRARIES})
@@ -57,14 +57,13 @@ if(APPLE)
       )
 
   add_library(${DISPLAYLIB_NAME} STATIC ${DISPLAY_SOURCES} ${IMGUI_SOURCES})
-  target_include_directories(${DISPLAYLIB_NAME}
-                             PUBLIC ${ROOT_HOME}/external/imgui/)
-  target_include_directories(${DISPLAYLIB_NAME} PUBLIC ${ROOT_HOME}/include/)
-  target_include_directories(${DISPLAYLIB_NAME}
-                             PUBLIC ${ROOT_HOME}/include/display)
-  target_include_directories(${DISPLAYLIB_NAME}
-                             PUBLIC ${ROOT_HOME}/external/metal-cpp/)
-  target_include_directories(${DISPLAYLIB_NAME} PUBLIC ${ROOT_HOME})
+  target_include_directories(${DISPLAYLIB_NAME} PUBLIC
+    ${ROOT_HOME}/external/imgui/
+    ${ROOT_HOME}/include/
+    ${ROOT_HOME}/include/display
+    ${ROOT_HOME}/external/metal-cpp/
+    ${ROOT_HOME}
+  )
 
   target_link_libraries(${DISPLAYLIB_NAME} PRIVATE "-framework Foundation")
   target_link_libraries(${DISPLAYLIB_NAME} PRIVATE "-framework QuartzCore")

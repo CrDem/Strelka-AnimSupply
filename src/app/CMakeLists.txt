@@ -33,7 +33,7 @@ target_include_directories(${RUNNER_NAME} PUBLIC ${ROOT_HOME}/external/ImGuiFile
 
 target_link_libraries(${RUNNER_NAME} PUBLIC 
   cxxopts::cxxopts
-  # imgui::imgui
+  imgui::imgui
   imguizmo::imguizmo
   scene
   sceneloader
