@@ -965,6 +965,11 @@ void OptiXRender::render(Buffer* output)
     const int32_t leftSpp = totalSpp - getSharedContext().mSubframeIndex;
     // if accumulation is off then launch selected samples per pixel
     uint32_t samplesThisLaunch = enableAccumulation ? std::min((int32_t)samplesPerLaunch, leftSpp) : samplesPerLaunch;
+    // not to trace rays if there is no geometry
+    if (mScene->getIndices().empty())
+    {
+        samplesThisLaunch = 0;
+    }
 
     if (params.debug == 1)
     {
@@ -1180,26 +1185,7 @@ Texture OptiXRender::loadTextureFromFile(const std::string& fileName)
         STRELKA_ERROR("Unable to load texture from file: {}", fileName.c_str());
         return Texture();
     }
-    // convert to float4 format
-    // TODO: add compression here:
-    // std::vector<float> floatData(texWidth * texHeight * 4);
-    // for (int i = 0; i < texHeight; ++i)
-    // {
-    //     for (int j = 0; j < texWidth; ++j)
-    //     {
-    //         const size_t linearPixelIndex = (i * texWidth + j) * 4;
-
-    //         auto remapToFloat = [](const unsigned char v)
-    //         {
-    //             return float(v) / 255.0f;
-    //         };
-
-    //         floatData[linearPixelIndex + 0] = remapToFloat(data[linearPixelIndex + 0]);
-    //         floatData[linearPixelIndex + 1] = remapToFloat(data[linearPixelIndex + 1]);
-    //         floatData[linearPixelIndex + 2] = remapToFloat(data[linearPixelIndex + 2]);
-    //         floatData[linearPixelIndex + 3] = remapToFloat(data[linearPixelIndex + 3]);
-    //     }
-    // }
+    // TODO: add compression here to save gpu mem
 
     const void* dataPtr = data;
 
@@ -1330,7 +1316,6 @@ bool OptiXRender::createOptixMaterials()
     std::vector<Texture> materialTextures;
 
     const auto searchPath = getSettings()->getAs<std::string>("resource/searchPath");
-
     fs::path resourcePath = fs::path(getSettings()->getAs<std::string>("resource/searchPath"));
 
     for (uint32_t i = 0; i < matDescs.size(); ++i)

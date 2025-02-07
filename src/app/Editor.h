@@ -65,7 +65,6 @@ public:
 
     void prepare()
     {
-        m_sceneLoader->loadGltf("C:/work/vespa/vespa.gltf", *m_scene);
         oka::Camera camera;
         camera.name = "Main";
         camera.fov = 45.0f;
@@ -81,11 +80,6 @@ public:
 
     void loadSettings()
     {
-        const std::string sceneFile = "C:/work/vespa/vespa.gltf";
-        const std::filesystem::path sceneFilePath = { sceneFile.c_str() };
-        const std::string resourceSearchPath = sceneFilePath.parent_path().string();
-        STRELKA_DEBUG("Resource search path {}", resourceSearchPath);
-
         const uint32_t imageWidth = 1024;
         const uint32_t imageHeight = 768;
 
@@ -110,7 +104,7 @@ public:
         m_settingsManager->setAs<bool>("render/pt/screenshotSPP", false);
         m_settingsManager->setAs<uint32_t>("render/pt/rectLightSamplingMethod", 0);
         m_settingsManager->setAs<bool>("render/enableValidation", false);
-        m_settingsManager->setAs<std::string>("resource/searchPath", resourceSearchPath);
+        m_settingsManager->setAs<std::string>("resource/searchPath", "");
         // Postprocessing settings:
         m_settingsManager->setAs<float>("render/post/tonemapper/filmIso", 100.0f);
         m_settingsManager->setAs<float>("render/post/tonemapper/cm2_factor", 1.0f);
@@ -223,7 +217,6 @@ public:
                 {
                     m_scene = std::move(new_scene);
 
-
                     oka::Camera camera;
                     camera.name = "Main";
                     camera.fov = 45.0f;
@@ -315,7 +308,7 @@ public:
         ImGui::PopStyleVar();
 
         // TODO: move to separate imgui widget
-        displayLightSettings(1, *m_scene, 0);
+        // displayLightSettings(1, *m_scene, 0);
 
         ImGui::Begin("Menu:"); // begin window
 
