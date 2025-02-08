@@ -3,7 +3,6 @@
 #include <scene/scene.h>
 
 #include <string>
-#include <vector>
 
 namespace oka
 {
