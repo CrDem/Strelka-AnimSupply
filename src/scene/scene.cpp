@@ -336,9 +336,8 @@ uint32_t Scene::createLight(const UniformLightDesc& desc)
     }
     else if (desc.type == 3)
     {
-        // distant light
-        currentLightMeshId = 0; // empty
-        scaleMatrix = glm::scale(glm::float4x4(1.0f), glm::float3(desc.radius, desc.radius, desc.radius));
+        // distant light has no mesh so skip
+        return lightId;
     }
 
     const glm::float4x4 transform = desc.useXform ? desc.xform * scaleMatrix : getTransform(desc);
