@@ -964,14 +964,11 @@ void OptiXRender::render(Buffer* output)
         const char *scrollName = scrollNameStr.c_str();
         float currAnimTime = settings.getAs<float>(scrollName);
 
-        bool set0time = settings.getAs<bool>("render/anim/set0time");
+        const float EPSILON = 1e-6f; // 0.000001
 
-        if (animations[i].current != currAnimTime) {
+        if (std::abs(animations[i].current - currAnimTime) > EPSILON) {
             settingsChanged = true;
             animations[i].current = currAnimTime;
-            if (set0time) {
-                animations[i].current = animations[i].start;
-            }
             blasChanged = mScene->applyAnimation(i) ? true : blasChanged;
         }
     }

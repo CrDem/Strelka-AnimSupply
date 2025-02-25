@@ -144,7 +144,7 @@ void processPrimitive(const tinygltf::Model& model, oka::Scene& scene, const uin
     const float* weightsData = nullptr;
     int weightsStride = 0;
     bool hasJoints = false;
-    std::vector<oka::Scene::vertexJnW> sb;
+    std::vector<oka::Scene::vertexSkinData> sb;
     if ( (primitive.attributes.find("JOINTS_0") != primitive.attributes.end()) && (primitive.attributes.find("WEIGHTS_0") != primitive.attributes.end()) ) 
     {
         hasJoints = true;
@@ -192,21 +192,23 @@ void processPrimitive(const tinygltf::Model& model, oka::Scene& scene, const uin
     for (uint32_t v = 0; v < vertexCount; ++v)
     {
         oka::Scene::Vertex vertex{};
-        vertex.pos = glm::make_vec3(&positionData[v * posStride]) * globalScale;
-        vertex.normal = packNormal(glm::normalize(glm::vec3(normalsData ? glm::make_vec3(&normalsData[v * normalStride]) : glm::vec3(0.0f))));
+        glm::float3 vPos = glm::make_vec3(&positionData[v * posStride]) * globalScale;
+        glm::float3 vNorm = glm::vec3(normalsData ? glm::make_vec3(&normalsData[v * normalStride]) : glm::vec3(0.0f));
+        vertex.pos = vPos;
+        vertex.normal = packNormal(glm::normalize(vNorm));
         vertex.uv = packUV(texCoord0Data ? glm::make_vec2(&texCoord0Data[v * texCoord0Stride]) : glm::vec3(0.0f));
         vertices.push_back(vertex);
         sum += vertex.pos;
 
         if (hasJoints) 
         {
-            oka::Scene::vertexJnW jnw{};
+            oka::Scene::vertexSkinData skinData{};
             const tinygltf::Accessor& jointsAccessor = model.accessors[primitive.attributes.find("JOINTS_0")->second];
             switch (jointsAccessor.componentType)
             {
                 case TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT: {
                     const uint32_t* jointsDataCasted = static_cast<const uint32_t*>(jointsData);
-                    jnw.joints = glm::ivec4(
+                    skinData.joints = glm::ivec4(
                         static_cast<int>(jointsDataCasted[v * jointsStride + 0]),
                         static_cast<int>(jointsDataCasted[v * jointsStride + 1]),
                         static_cast<int>(jointsDataCasted[v * jointsStride + 2]),
@@ -216,7 +218,7 @@ void processPrimitive(const tinygltf::Model& model, oka::Scene& scene, const uin
                 }
                 case TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT: {
                     const uint16_t* jointsDataCasted = static_cast<const uint16_t*>(jointsData);
-                    jnw.joints = glm::ivec4(
+                    skinData.joints = glm::ivec4(
                         static_cast<int>(jointsDataCasted[v * jointsStride + 0]),
                         static_cast<int>(jointsDataCasted[v * jointsStride + 1]),
                         static_cast<int>(jointsDataCasted[v * jointsStride + 2]),
@@ -226,7 +228,7 @@ void processPrimitive(const tinygltf::Model& model, oka::Scene& scene, const uin
                 }
                 case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE: {
                     const uint8_t* jointsDataCasted = static_cast<const uint8_t*>(jointsData);
-                    jnw.joints = glm::ivec4(
+                    skinData.joints = glm::ivec4(
                         static_cast<int>(jointsDataCasted[v * jointsStride + 0]),
                         static_cast<int>(jointsDataCasted[v * jointsStride + 1]),
                         static_cast<int>(jointsDataCasted[v * jointsStride + 2]),
@@ -238,8 +240,10 @@ void processPrimitive(const tinygltf::Model& model, oka::Scene& scene, const uin
                     std::cerr << "Joint component type " << jointsAccessor.componentType << " not supported!" << std::endl;
                     return;
             }
-            jnw.weights = glm::make_vec4(&weightsData[v * weightsStride]);
-            sb.push_back(jnw);
+            skinData.weights = glm::make_vec4(&weightsData[v * weightsStride]);
+            skinData.pos = vPos;
+            skinData.normal = vNorm;
+            sb.push_back(skinData);
         }
     }
     const glm::float3 massCenter = sum / (float)vertexCount;
@@ -599,6 +603,7 @@ void loadAnimation(const tinygltf::Model& model, oka::Scene& scene)
                     if (input < anim.start)
                     {
                         anim.start = input;
+                        anim.current = input;
                     };
                     if (input > anim.end)
                     {
@@ -842,8 +847,6 @@ bool GltfLoader::loadGltf(const std::string& modelPath, oka::Scene& scene)
     }
 
     loadAnimation(model, scene);
-
-    scene.mInitialVertices = scene.mVertices;
 
     return res;
 }

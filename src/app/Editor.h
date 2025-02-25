@@ -106,7 +106,6 @@ public:
         m_settingsManager->setAs<uint32_t>("render/pt/debug", 0); // 0 - none, 1 - normals
         m_settingsManager->setAs<float>("render/cameraSpeed", 1.0f);
         m_settingsManager->setAs<float>("render/pt/upscaleFactor", 0.5f);
-        m_settingsManager->setAs<bool>("render/anim/set0time", false);
         m_settingsManager->setAs<bool>("render/pt/enableUpscale", true);
         m_settingsManager->setAs<bool>("render/pt/enableAcc", true);
         m_settingsManager->setAs<bool>("render/pt/enableTonemap", true);
@@ -431,12 +430,6 @@ public:
             if (ImGui::Checkbox("Enable Path Tracer Acc", &accumulationEnabled))
             {
                 m_settingsManager->setAs<bool>("render/pt/enableAcc", accumulationEnabled);
-            }
-
-            bool set0time = m_settingsManager->getAs<bool>("render/anim/set0time");
-            if (ImGui::Checkbox("set0time", &set0time))
-            {
-                m_settingsManager->setAs<bool>("render/anim/set0time", set0time);
             }
 
             ImGui::TreePop();

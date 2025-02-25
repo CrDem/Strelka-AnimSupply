@@ -49,7 +49,7 @@ uint32_t Scene::createMesh(const std::vector<Vertex>& vb, const std::vector<uint
     return meshId;
 }
 
-uint32_t Scene::createMesh(const std::vector<Vertex>& vb, const std::vector<uint32_t>& ib, const std::vector<oka::Scene::vertexJnW>& sb)
+uint32_t Scene::createMesh(const std::vector<Vertex>& vb, const std::vector<uint32_t>& ib, const std::vector<oka::Scene::vertexSkinData>& sb)
 {
     std::scoped_lock lock(mMeshMutex);
 
@@ -74,7 +74,7 @@ uint32_t Scene::createMesh(const std::vector<Vertex>& vb, const std::vector<uint
     mesh->mVbOffset = mVertices.size();
     mesh->mVertexCount = vb.size();
 
-    mesh->mSbOffset = mVertexJnW.size();
+    mesh->mSbOffset = mVertexSkinData.size();
 
     // const uint32_t ibOffset = mVertices.size(); // adjust indices for global index buffer
     // for (int i = 0; i < ib.size(); ++i)
@@ -83,7 +83,7 @@ uint32_t Scene::createMesh(const std::vector<Vertex>& vb, const std::vector<uint
     // }
     mIndices.insert(mIndices.end(), ib.begin(), ib.end());
     mVertices.insert(mVertices.end(), vb.begin(), vb.end()); // copy vertices
-    mVertexJnW.insert(mVertexJnW.end(), sb.begin(), sb.end());
+    mVertexSkinData.insert(mVertexSkinData.end(), sb.begin(), sb.end());
     return meshId;
 }
 
@@ -223,6 +223,8 @@ bool Scene::applyAnimation(const uint32_t animId)
     return blasChanged;
 }
 
+uint32_t packNormal(const glm::float3& normal);
+
 void Scene::applySkinning()
 {
     for (int i = 0; i < mNodes.size(); ++i)
@@ -238,14 +240,14 @@ void Scene::applySkinning()
                 int sbOffset = mesh.mSbOffset;
                 for (int iv = 0; iv < mesh.mVertexCount; ++iv)
                 {
-                    glm::vec4 v_weight = mVertexJnW[sbOffset + iv].weights;
-                    glm::u16vec4 v_joint = mVertexJnW[sbOffset + iv].joints;
+                    glm::vec4 v_weight = mVertexSkinData[sbOffset + iv].weights;
+                    glm::u16vec4 v_joint = mVertexSkinData[sbOffset + iv].joints;
                     glm::mat4 skinMat = v_weight[0] * jointMat[v_joint[0]]
                                       + v_weight[1] * jointMat[v_joint[1]]
                                       + v_weight[2] * jointMat[v_joint[2]]
                                       + v_weight[3] * jointMat[v_joint[3]];
-                    //mVertices[vbOffset + iv].pos = skinMat * glm::vec4(mVertices[vbOffset + iv].pos, 1.0);
-                    mVertices[vbOffset + iv].pos = skinMat * glm::vec4(mInitialVertices[vbOffset + iv].pos, 1.0);
+                    mVertices[vbOffset + iv].pos = skinMat * glm::vec4(mVertexSkinData[sbOffset + iv].pos, 1.0);
+                    mVertices[vbOffset + iv].normal = packNormal(glm::normalize(glm::vec3(glm::mat3(skinMat) * glm::vec4(mVertexSkinData[sbOffset + iv].normal, 1.0))));
                 }
             }
         }
@@ -257,11 +259,6 @@ void Scene::computeJointMatrices(std::vector<glm::mat4> *jointMatrices, int join
     auto &skin = mSkines[skinId];
     for (int i = 0; i < jointCount; ++i)
     {
-        /*
-        glm::mat4 jointGlobalTransform = calculateNodeGlobalTransform(skin.joints[i]);
-        jointMatrices->push_back(jointGlobalTransform * skin.inverseBindMatrices[i]);
-        skin.inverseBindMatrices[i] = glm::inverse(jointGlobalTransform);
-        */
         glm::mat4 jointGlobalTransform = calculateNodeGlobalTransform(skin.joints[i]);
         jointMatrices->push_back(jointGlobalTransform * skin.inverseBindMatrices[i]);
     }

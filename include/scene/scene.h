@@ -93,12 +93,14 @@ public:
         float pad1;
     };
 
-    struct vertexJnW //vertex joints and weights
+    struct vertexSkinData //vertex skin data
     {
         glm::ivec4 joints{0};
         glm::vec4 weights{0.0};
+        glm::float3 pos;
+        glm::float3 normal;
     };
-    std::vector<vertexJnW> mVertexJnW;
+    std::vector<vertexSkinData> mVertexSkinData;
 
     struct Node
     {
@@ -168,18 +170,12 @@ public:
 
     struct Animation
     {
-        enum class State
-        {
-            ACTIVATED,
-            DEACTIVATED
-        };
-        State state = State::DEACTIVATED;
         std::string name;
         std::vector<AnimationSampler> samplers;
         std::vector<AnimationChannel> channels;
         float start = std::numeric_limits<float>::max();
         float end = std::numeric_limits<float>::min();
-        float current = -228;
+        float current;
     };
     std::vector<Animation> mAnimations;
 
@@ -241,7 +237,6 @@ public:
     std::mutex mInstanceMutex;
 
     std::vector<Vertex> mVertices;
-    std::vector<Vertex> mInitialVertices;
     std::vector<uint32_t> mIndices;
 
     std::vector<glm::float3> mCurvePoints;
@@ -461,7 +456,7 @@ public:
     /// <param name="ib">Indices</param>
     /// <returns>Mesh id in scene</returns>
     uint32_t createMesh(const std::vector<Vertex>& vb, const std::vector<uint32_t>& ib);
-    uint32_t createMesh(const std::vector<Vertex>& vb, const std::vector<uint32_t>& ib, const std::vector<oka::Scene::vertexJnW>& sb);
+    uint32_t createMesh(const std::vector<Vertex>& vb, const std::vector<uint32_t>& ib, const std::vector<oka::Scene::vertexSkinData>& sb);
     /// <summary>
     /// Creates Instance
     /// </summary>
